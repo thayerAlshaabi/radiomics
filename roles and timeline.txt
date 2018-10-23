@@ -1,0 +1,5 @@
+For next week:
+
+Sami: Read about ROC (Receiver operating characteristic) and Confusion Matrix
+All: start literature review
+All: start learning about DEAP

@@ -29,5 +29,3 @@
  - Axel
 	DEAP Initial Implementation.
 	Generate initial model based on previous research.
-
-

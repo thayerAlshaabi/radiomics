@@ -1,5 +1,7 @@
 #CS 352 - Evolutionary Computation
+
 #Project: Nodule categorization using Radiomics
+
 #Date: 10/24/2018
 
 ##Class Targets:

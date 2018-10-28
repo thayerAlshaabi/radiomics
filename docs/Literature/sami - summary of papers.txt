@@ -1,0 +1,10 @@
+Genetic Programming for Simultaneous Feature Selection and Classifier Design
+
+Durga Prasad Muni, Nikhil R. Pal, Fellow, IEEE, and Jyotirmoy Das
+
+
+- two new crossover operations to suit feature selection process
+- algorithm produces a feature ranking scheme
+- evaluation function that is used: distance, information, dependence, consistency, classifier error rate (note: these 5 groups all have references that can be found in this paper)
+- QUOTE: “This paper presents an online FS algorithm using GP, named, GPmtfs (multitree genetic programming based FS).For a c-class problem, a population of classifiers, each having c trees is constructed using a randomly chosen feature subset. The size of the feature subset is determined probabilistically by assigning higher probabilities to smaller sizes. The classifiers which are more accurate using a small number of features are given higher probability to pass through the GP evolutionary operations. As a result, we can achieve a good classifier using a small feature subset. We introduce two new crossover operations to suit theFS process.”
+- SUMMARY OF QUOTE: multitude genetic programming based FS uses a population of classifiers. Each of these classifiers is created using a randomly chosen subset of the features - it is more probable that a smaller subset is created. More accurate classifiers are more likely to be selected.

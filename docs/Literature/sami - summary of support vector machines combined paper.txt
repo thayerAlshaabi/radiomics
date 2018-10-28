@@ -1,0 +1,11 @@
+Support vector machines combined with feature selection for breast cancer diagnosis
+Mehmet Fatih Akay
+
+- “The performance of the method is evaluated using classification accuracy, sensitivity, specificity, positive and negative predictive values, receiver operating characteristic (ROC) curves and confusion matrix”
+- 5 features: 99.51%
+- “Feature selection is an important issue in building classification systems. It is advantageous to limit the number of input features in a classifier to in order to have a good predictive and less computationally intensive model (Zhang, 2000).”
+- “It consists of nine features, each of which is represented as an integer between 1 and 10. The features are; clump thickness (F1), uniformity of cell size (F2), uniformity of cell shape (F3), marginal adhesion (F4), single epithelial cell size (F5), bare nucleoi (F6), bland chromatin (F7), normal nuclei (F8), and mitoses (F9). Four hundred and forty four samples of the dataset belong to benign class, and the rest are of malignant class.”
+- “ It is advantageous to limit the number of input features in a classifier in order to have a good predic- tive and less computationally intensive model. In the area of medical diagnosis, a small feature subset means lower test and diagnostic costs. “
+- F-score (equation 19) can be used to discriminate features (note: was a little confused by this)
+- “Classification accuracy, sensitivity, specificity, positive predictive value and negative predictive value can be defined by using the elements of the confusion matrix as” see table 1 and equations 20-24
+- ROC curves: trade-off between sensitivity and specificity

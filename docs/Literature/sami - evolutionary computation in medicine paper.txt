@@ -1,0 +1,7 @@
+Evolutionary computation in medicine: an overview
+Carlos Andre ́s Pen ̃a-Reyes *, Moshe Sipper
+
+a lot of this is general stuff - I’m mostly pulling out important details related to GP:
+
+will complete another time
+

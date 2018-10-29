@@ -15,10 +15,14 @@ import os
 # -------------------------------------------------#
 
 def LoadFile(xl):
-	df1 = pd.read_csv(xl)
-	df1.head()
-	df1 = df1.dropna()
-	return(df1)
+	df = pd.read_csv(xl)
+	df.head()
+	df = df.dropna(thresh=len(df)*.90, axis=1)
+	df = df.dropna(thresh=df.shape[1]*.5)
+	df = df.dropna(axis=1, subset=df['ca'])
+	df = df.apply(lambda col: col.fillna(col.mean()))
+	df.isnull().sum().any()
+	return(df)
 
 #Change working directory to dataset directory
 if ((os.path.splitext(os.path.basename(os.getcwd()))[0]) != 'dataset'):

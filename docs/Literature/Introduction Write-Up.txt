@@ -1,0 +1,13 @@
+Abstract
+
+Introduction
+Globally, lung cancer is the leading cause of cancer deaths.1 Furthermore, lung cancer patients have the highest malignancy-associated suicide rate in the United States.2 Non-small cell lung cancer (NSCLC) is a heterogenous disease with a variety of different biomarkers, some reflecting a point mutation, while others are associated with a range of protein expressions. Though the most widely associated cause is smoking, other factors that make lung cancer likely are exposure to radon, asbestos, mineral and metal dust, air pollution, radiation treatment to the chest or breast area, HIV/AIDS, as well as genetic predisposition. Due to immunosenescence, or the gradual deterioration of the immune system brought on by age, approximately 50% of diagnoses are in patients 70 years-old and older.3 
+According to the severity of the disease, NSCLC is categorized on a scale of I to IV. Stage I represents a localized cancer that is <5cm and has not spread to the lymph nodes, stage II is characterized by a cancer is 5-7cm and has potentially spread to the lymph nodes, bronchus, or pleura, stage III lung cancer is >7cm with possible spread within the chest, and stage IV is in both lungs with potential metastasis through the bloodstream to the brain, bones, and adrenal glands.1 Because initial stages of NSCLC are largely asymptomatic, patients are usually not aware of its incidence. For instance, symptoms arise, and squamous cell carcinoma is most commonly detected in a patient once it reaches a size of 30 mm. This takes approximately 8 years, and thus the risk for metastasis by this time is substantially high.4 In fact, 80% of NSCLC diagnoses are found to be at stage III or IV, and are not suitable candidates for surgery.4 
+1. https://www.astrazeneca.com/content/dam/az/events_files/esmo-2017/APPROVED%20Lung%20Cancer%20Awareness%20Infographic.pdf
+2. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6113987/
+3. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5994497/
+4. https://europepmc.org/backend/ptpmcrender.fcgi?accid=PMC1747375&blobtype=pdf
+
+
+
+

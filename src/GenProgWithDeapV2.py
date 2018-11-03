@@ -4,74 +4,70 @@
 
 # Libraries
 # -------------------------------------------------#
-from sklearn.preprocessing import StandardScalar
-from deap import base, creator, gp
-from sklearn.util import resample
+#from sklearn.preprocessing import StandardScalar
+from deap import base, creator, gp, tools
+#from sklearn.util import resample
 import matplotlib.pyplot as plt
 #import pygraphviz as pgv
-import pandas as pd
+#import pandas as pd
 import operator
 import glob
 import math
 import csv
 import os
+import random
 # -------------------------------------------------#
 
+numParameters = 3 #this is arbitrary - will change based on how many we decide to use
 
-pset = gp.PrimitiveSet("MAIN", MUX_TOTAL_LINES, "IN")
-pset.addPrimitive(operator.and_, 2)
-pset.addPrimitive(operator.or_, 2)
-pset.addPrimitive(operator.not_, 1)
-pset.addPrimitive(operator.le, 2)
-pset.addPrimitive(operator.ge, 2)
+pset = gp.PrimitiveSet("main", numParameters)
+pset.addPrimitive(operator.add, 2)
+pset.addPrimitive(operator.sub, 2)
+pset.addPrimitive(operator.mul, 2)
+# add more operator types - keeping it at 3 for initial debugging
 
-#pset.addPrimitive(if_then_else, 3)
-# less than, greater than equal to, etc
-pset.addTerminal(1)
-pset.addTerminal(0)
+pset.addEphemeralConstant("name", lambda: random.uniform(-1, 1))
+# the above line (about adding ephemerals) is buggy with my IDE (Spyder).
+# if it's buggy for you, comment out, and instead use the below 2 lines
+#pset.addTerminal(1,) #comment this line out when you test it unless ephemeral is buggy for you too
+#pset.addTerminal(0,) #comment this line out when you test it unless ephemeral is buggy for you too
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=pset)
 
-# create individuals
+toolbox = base.Toolbox()
+toolbox.register("expr", gp.genFull, pset=pset, min_=1, max_=3)
+toolbox.register("individual", tools.initIterate, creator.Individual,
+                 toolbox.expr)
 
-# create population
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.population(n=100)
+def main():
+    
+    #create a population of size 100
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+    population = toolbox.population(n=100)
 
+    # demonstrate how to create an individual and evaluate it:
+    tree = toolbox.individual()
+    fitnessOfTree = evaluateFitness(tree)
+     
+def evaluateFitness(individual):
+    # currently i am just having the evaluate fitness function actually
+    # solve the equation. to be implemented: compare to binary yes/no
+    individualString = str(individual)
+   # print(individualString) #uncomment to understand more about how this works
+    function = gp.compile(individualString, pset)
+    
+  #  print(function(1, 2, 3)) #uncomment to understand more about how this works
+   
+    # currently have three parameters (1,2,3), because numParameters (line 21) = 3
+    return function(1, 2, 3)
 
-###Crossover Function
-def CrossEvol(parents):
-	offpsrings = []
-	for i in range(len(parents)/2):
-		Xchild = deap.tools.cxOnePoint(parent[(2*i-1)], parent[(2*i)])
-		offpsrings.append(child)
-
-	return(offpsrings)
-
-###Mutation Function
-def Mutation(parents):
-	offsprings = []
-	for i in range(len(parents)):
-		mChild = deap.gp.mutNodeReplacement(parents[i])
-		offpsrings.append(mChild)
-
-	return(offsprings)
-
-###Selection Function - Offspring Selection?
-def Tournament(population, rep, tourSize):
-	deap.tools.selTournament(population, rep, tournSize, fit_attr = 'fitness')
-
-
-def evalMultiplexer(individual):
-    func = toolbox.compile(expr=individual)
-    return sum(func(*in_) == out for in_, out in zip(inputs, outputs)),
-
-
-
-
-pop = toolbox.population(n=300)
-hof = tools.HallOfFame(5) #Best 5 Individuals to ever live
-#Trying to figure out how to initialize/load population
-pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.1, 40, stats=mstats,
-                                   halloffame=hof, verbose=True)
+def importData(filename):
+    # this is not finished (will look into this more with group)
+    # https://docs.python.org/3/library/csv.html is very useful
+    with open(filename, newline = '') as csvfile:
+        raw = csv.reader(csvfile, delimiter = ' ', quotechar = '|')
+        for row in raw:
+            print(', '.join(row))
+    
+main()

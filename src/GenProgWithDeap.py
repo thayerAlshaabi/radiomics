@@ -11,31 +11,38 @@ import matplotlib.pyplot as plt
 #import pygraphviz as pgv
 import pandas as pd
 import operator
+import random
 import glob
 import math
 import csv
 import os
 # -------------------------------------------------#
 
-###How do we load Population?
-def Population():
-	if ((os.path.splitext(os.path.basename(os.getcwd()))[0]) != 'dataset'):
-		os.chdir('./dataset')
-	
-	csvFiles = glob.glob(os.getcwd() + '\*.csv')
-	xl = csvFiles[0]
-	df1 = pd.read_csv(xl)
+def main():
+	'''Evolution Parameters'''
+	MaxGen = 100
+	PopSize = 100
+	Pcross = 0.8
+	Pmut = 0.1 
 
-	trainSize = int(0.75 * len(df1))
-	testSize = len(df1) - trainSize
+	'''Seeding Experiments'''
+	random.seed(1)
+	'''Population Initialization'''
+	pop = toolbox.population(PopSize)
+	hof = tools.HallOfFame(5) #Store top 5 Individuals
+		
+	'''Model Defintion'''
+	pset = gp.PrimitiveSet("MAIN", MUX_TOTAL_LINES, "IN")
+	pset.addPrimitive(operator.and_, 2)
+	pset.addPrimitive(operator.or_, 2)
+	pset.addPrimitive(operator.not_, 1)
+	pset.addPrimitive(if_then_else, 3)
+	pset.addTerminal(1)
+	pset.addTerminal(0)	
 
-	for i in range(trainSize):
-		trainingTarget = 
-		trainingFeatures = 
-
-	for i in range (testSize):
-		testTarget = 
-		testFeatures = 
+	#Trying to figure out how to initialize/load population
+	pop, log = algorithms.eaSimple(pop, toolbox, Pcross, Pmut, MaxGen, stats=mstats,
+	                                   halloffame=hof, verbose=True)
 
 ###Crossover Function
 def CrossEvol(parents):
@@ -59,24 +66,11 @@ def Mutation(parents):
 def Tournament(population, rep, tourSize):
 	deap.tools.selTournament(population, rep, tournSize, fit_attr = 'fitness')
 
-
+###Evaluation 
 def evalMultiplexer(individual):
     func = toolbox.compile(expr=individual)
     return sum(func(*in_) == out for in_, out in zip(inputs, outputs)),
 
 
-
-pset = gp.PrimitiveSet("MAIN", MUX_TOTAL_LINES, "IN")
-pset.addPrimitive(operator.and_, 2)
-pset.addPrimitive(operator.or_, 2)
-pset.addPrimitive(operator.not_, 1)
-pset.addPrimitive(if_then_else, 3)
-pset.addTerminal(1)
-pset.addTerminal(0)
-
-
-pop = toolbox.population(n=300)
-hof = tools.HallOfFame(5) #Best 5 Individuals to ever live
-#Trying to figure out how to initialize/load population
-pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.1, 40, stats=mstats,
-                                   halloffame=hof, verbose=True)
+#Call main function
+main()

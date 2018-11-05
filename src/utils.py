@@ -1,5 +1,13 @@
 # coding: utf-8
 
+""" MIT License """
+'''
+    Axel Masquelin & Sami Connolly  
+    Andrea Elhajj  & Thayer Alshaabi
+    ---
+    Copyright (c) 2018 
+'''
+
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import sys, os
@@ -21,32 +29,33 @@ def progressBar(value, endvalue, bar_length=50):
     sys.stdout.write("\r[{0}] {1}%".format(arrow + spaces, int(round(percent * 100))))
 
 
-def import_data(filename='data_101718.csv'):
+def create_df(filename, clean=False):
     '''
         Import dataset into a pandas dataframe 
         and filter out empty data entires
     '''
-    data = pd.read_csv(
+    df = pd.read_csv(
         os.path.join(os.path.abspath(os.pardir), 
         'src/dataset', filename), low_memory=False
     )
     
-    # Drop out the columns that have over 90% missing data points.
-    df = data.dropna(thresh=len(data)*.90, axis=1)
+    if clean:
+        # Drop out the columns that have over 90% missing data points.
+        df = df.dropna(thresh=len(df)*.90, axis=1)
 
-    # Drop out any rows that are missing more than 50% of the required columns
-    df = df.dropna(thresh=df.shape[1]*.5)
+        # Drop out any rows that are missing more than 50% of the required columns
+        df = df.dropna(thresh=df.shape[1]*.5)
 
-    # Drop out any rows that are missing the target value 
-    df = df.dropna(axis=1, subset=df['ca'])
+        # Drop out any rows that are missing the target value 
+        df = df.dropna(axis=1, subset=df['ca'])
 
-    # Fill the rest of missing entries with the mean of each col
-    df = df.apply(lambda col: col.fillna(col.mean()))
+        # Fill the rest of missing entries with the mean of each col
+        df = df.apply(lambda col: col.fillna(col.mean()))
 
     return df
 
 
-def subsample_df(df, method=2):
+def resample_df(df, method):
     '''
         Equalize the number of samples in each class:
         -- method = 1 - upsample the positive cases
@@ -80,14 +89,27 @@ def subsample_df(df, method=2):
         print('Error: unknown method')
         
 
-def load_data(df, normalize=False):
+def load_data(
+    filename, 
+    clean=False, 
+    normalize=False,
+    resample=2,
+):
     '''
         Returns:
             X: a matrix of features
             y: a target vector (ground-truth labels)
 
-        --Option to normalize all features in the dataframe 
+        normalize   - Option to normalize all features in the dataframe 
+        clean       - Option to filter out empty data entires
+        resample    - Method to use to resample the dataset
     '''
+
+    df = resample_df(
+        create_df(filename, clean),
+        method=resample,
+    ) 
+
     features = list(df.columns.values)
     features.remove('pid')
     features.remove('ca')

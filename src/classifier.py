@@ -1,5 +1,12 @@
-
 # coding: utf-8
+
+""" MIT License """
+'''
+    Axel Masquelin & Sami Connolly  
+    Andrea Elhajj  & Thayer Alshaabi
+    ---
+    Copyright (c) 2018 
+'''
 
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
@@ -77,7 +84,7 @@ def find_best_config(X, y, clf, folds):
     return optimizer
 
 
-def fitness(
+def eval(
     X,              # data matrix
     y,              # target vvector
     clf,            # classifier to use ('rf', 'svm')
@@ -167,7 +174,7 @@ def fitness(
     return mean_auc
 
 
-def plot_confusion_matrix(X,y, clf_params, folds=10):
+def plot_confmtx(X,y, clf_params, folds=10):
     '''
         Run a RandomForestClassifier with cross-validation 
         and plot a confusion matrix for each fold

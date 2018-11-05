@@ -43,7 +43,7 @@ if __name__ == '__main__':
     pop, stats, hof = evo.run()
 
     # get features of the best individual
-    tree = evo.get_tree(hof[0])
+    tree = evo.get_tree(hof[0], plot=True)
     features_idx = [int(f[2:]) for f in tree.values() if str(f).startswith('f_')] 
     
     # filter out unselected features

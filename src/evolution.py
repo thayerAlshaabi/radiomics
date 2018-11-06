@@ -70,7 +70,7 @@ class Evolution:
             Run Evolution and return statistical logs and best individuals
         '''
         # set a fixed seed for the random number generator
-        random.seed(2018)
+        random.seed(133)
 
         pop = self.toolbox.population(self.popsize)
         hof = tools.HallOfFame(self.hofsize)
@@ -171,9 +171,7 @@ class Evolution:
             )
             return result,
 
-        self.toolbox.register("evaluate", # fitness function
-            eval
-        )
+        self.toolbox.register("evaluate", eval)
 
 
     def get_tree(self, individual, plot=False):
@@ -196,7 +194,7 @@ class Evolution:
 
             ax = plt.gca()
             ax.set_axis_off()
-            plt.show()
+            #plt.show()
 
         return labels
 

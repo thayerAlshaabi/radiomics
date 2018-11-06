@@ -120,7 +120,7 @@ def eval(
     mean_fpr = np.linspace(0, 1, 100)
     
     if plot_roc:
-        plt.figure(figsize=(10,8))
+        plt.figure(2, figsize=(10,8))
 
     for itr, (train, test) in enumerate(cv):
         utils.progressBar(itr+1, folds) 

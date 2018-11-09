@@ -14,8 +14,7 @@ import utils
 import classifier
 from evolution import Evolution
 import numpy as np
-import sys, os
-sys.path.append("..")
+import matplotlib.pyplot as plt
 # ---------------------------------------------------------------------------- #
 
 if __name__ == '__main__':
@@ -50,18 +49,23 @@ if __name__ == '__main__':
     selected_features = X[:, features_idx] 
 
     if len(selected_features):
-        print('Number of selected features: ', selected_features.shape[1])
+        print('\nNumber of selected features: {}\n\n'.format(
+            selected_features.shape[1])
+        )
 
         # evaluate selected features
-        optimizer = classifier.find_best_config(X, y, clf='rf', folds=3)
-        
+        print('Evaluating features...')
         auc_score = classifier.eval(
             selected_features, y, 
             clf = 'rf',  
-            params = optimizer.best_params_, 
-            folds=10, # number of runs
-            plot_roc=True  
+            folds=10, 
+            plot_roc=True,
+            plot_confusion_matrix=True,   
         )
+
+        # show figures
+        print('Done')
+        plt.show()
 
     else:
         print('No features were selected!!!')

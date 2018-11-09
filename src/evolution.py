@@ -183,6 +183,7 @@ class Evolution:
         nodes, edges, labels = gp.graph(individual)
 
         if plot:
+            plt.figure(1, figsize=(10,8))
             tree = nx.Graph()
             tree.add_nodes_from(nodes)
             tree.add_edges_from(edges)
@@ -194,7 +195,6 @@ class Evolution:
 
             ax = plt.gca()
             ax.set_axis_off()
-            #plt.show()
 
         return labels
 

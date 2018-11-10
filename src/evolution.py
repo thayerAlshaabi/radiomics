@@ -122,7 +122,7 @@ class Evolution:
         self.pset.addTerminal(True, bool)
 
 
-    def mutation(self, ):
+    def mutation(self, individuals, age ):
         '''
             Define a mutation function
         '''

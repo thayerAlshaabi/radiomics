@@ -130,10 +130,8 @@ class Evolution:
             Define a mutation function
         '''
         ''' Axel's Swap Mutation - Unsure how we are planning to store whether its an elif and all that. ???
-
         #Individuals (3D matrix - first layer of matrix is population/genome, second layer is age of individuals)
         #Mutation - holds index of individuals that will be mutated
-
         SwapSpring = np.zeros(len(individuals),len(mutation),2)
         for i in range(len(mutation)):
             location = mutation[i]
@@ -144,7 +142,6 @@ class Evolution:
             rowi[a[1]] = temp
             SwapSpring[1][i][:] = rowi #Storing mutated genome
             SwapSpring[2][i] = individuals[2][i] #Storing Age of genome.
-
         '''
 
         self.toolbox.register("expr_mut", # mutation criteria
@@ -165,7 +162,7 @@ class Evolution:
         '''
 
         self.toolbox.register("mate",  # crossover function
-            gp.cxOnePoint
+            gp.cxOnePoint #Cannot use tools as they work of sequences and are not compatible with GP inputs
         )
 
 

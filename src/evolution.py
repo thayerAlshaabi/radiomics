@@ -180,17 +180,29 @@ class Evolution:
             Define a fitness function
         '''
         def eval(individual):
+            nTP = 0
+            nFP = 0
+            nCases = 100
             # transform the tree expression in a callable function
             func = self.toolbox.compile(expr=individual)
             
             # randomly sample 100 cases from the dataset for testing
-            test_samples = random.sample(self.dataset, 100)
+            test_samples = random.sample(self.dataset, nCases)
             
+            #Fitnes of TPR and FPR
+
             # evaluate the sum of correctly identified cases
-            result = sum(
+            nTP = sum(
                 bool(func(*case[:self.numfeatures])) is bool(case[self.numfeatures]) \
                     for case in test_samples
-            )
+            ) / nCases
+
+            nFP = sum(
+                bool(func(*case[:self.numfeatures])) is not bool(case[self.numfeatures]) \
+                    for case in test_samples
+            ) / nCases
+
+            result = nTP * (1 - nFP)
             return result,
 
         self.toolbox.register("evaluate", eval)

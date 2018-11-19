@@ -65,12 +65,12 @@ class Evolution:
         self.fitness()  
 
 
-    def run(self, ):
+    def run(self, reps):
         '''
             Run Evolution and return statistical logs and best individuals
         '''
         # set a fixed seed for the random number generator
-        random.seed(133)
+        random.seed(reps*10)
 
         pop = self.toolbox.population(self.popsize)
         hof = tools.HallOfFame(self.hofsize)
@@ -80,7 +80,7 @@ class Evolution:
         stats.register("min", np.min)
         stats.register("max", np.max)
 
-        algorithms.eaSimple(
+        pop, logbook = algorithms.eaSimple(
             pop, 
             self.toolbox,
             cxpb = self.cx, 
@@ -90,7 +90,7 @@ class Evolution:
             halloffame = hof, 
             verbose = 1
         )
-        return pop, stats, hof
+        return pop, logbook, hof, 
 
 
     def set_opts(self):
@@ -193,16 +193,16 @@ class Evolution:
 
             # evaluate the sum of correctly identified cases
             nTP = sum(
-                bool(func(*case[:self.numfeatures])) is bool(case[self.numfeatures]) \
+                bool(func(*case[:self.numfeatures])) == bool(case[self.numfeatures]) \
                     for case in test_samples
             ) / nCases
 
             nFP = sum(
-                bool(func(*case[:self.numfeatures])) is not bool(case[self.numfeatures]) \
+                bool(func(*case[:self.numfeatures])) != bool(case[self.numfeatures]) \
                     for case in test_samples
             ) / nCases
 
-            result = nTP * (1 - nFP)
+            result = nTP * pow((1 - nFP),2)
             return result,
 
         self.toolbox.register("evaluate", eval)

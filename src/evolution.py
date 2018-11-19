@@ -97,22 +97,26 @@ class Evolution:
         '''
             Define operators set. 
         '''
-        # boolean operators
+        # boolean operators (Removed)
         self.pset.addPrimitive(operator.and_, [bool, bool], bool)
         self.pset.addPrimitive(operator.or_, [bool, bool], bool)
         self.pset.addPrimitive(operator.not_, [bool], bool)
 
         # floating point operators
-        self.pset.addPrimitive(operator.add, [float,float], float)
-        self.pset.addPrimitive(operator.sub, [float,float], float)
-        self.pset.addPrimitive(operator.mul, [float,float], float)
+        self.pset.addPrimitive(np.add, [float,float], float)
+        self.pset.addPrimitive(np.subtract, [float,float], float)
+        self.pset.addPrimitive(np.multiply, [float,float], float)
         self.pset.addPrimitive(self.div, [float,float], float)
+        self.pset.addPrimitive(np.exp, [float], float)
+        self.pset.addPrimitive(np.sin, [float], float)
+        self.pset.addPrimitive(np.cos, [float], float)
+        self.pset.addPrimitive(np.log, [float], float)
 
         # logic operators
-        #self.pset.addPrimitive(operator.gt, [float, float], bool)
+        self.pset.addPrimitive(operator.gt, [float, float], bool)
         self.pset.addPrimitive(operator.lt, [float, float], bool)
         self.pset.addPrimitive(operator.eq, [float, float], bool)
-        self.pset.addPrimitive(self.ifelse, [bool, float, float], float)
+        self.pset.addPrimitive(self.ifelse, [float, float], float)
 
         # terminals
         self.pset.addEphemeralConstant( # random constant
@@ -269,11 +273,11 @@ class Evolution:
             return 1
 
 
-    def ifelse(self, condition, case1, case2):
+    def ifelse(self, feature1, feature2):
         '''
             Define a new operator for if/else 
         '''
-        if condition:  
-            return case1
+        if feature1 < feature2:  
+            return -feature1
         else: 
-            return case2
+            return feature1

@@ -65,12 +65,11 @@ class Evolution:
         self.fitness()  
 
 
-    def run(self, reps):
+    def run(self,):
         '''
             Run Evolution and return statistical logs and best individuals
         '''
         # set a fixed seed for the random number generator
-        random.seed(reps*10)
 
         pop = self.toolbox.population(self.popsize)
         hof = tools.HallOfFame(self.hofsize)

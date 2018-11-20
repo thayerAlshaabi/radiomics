@@ -11,7 +11,6 @@
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 from evolution import Evolution
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -20,7 +19,6 @@ import random
 import utils
 import csv
 import os
-
 # ---------------------------------------------------------------------------- #
 
 if __name__ == '__main__':
@@ -114,6 +112,3 @@ if __name__ == '__main__':
     logs.to_csv(pth_to_save)
 
     print('Done')
-
-
-    

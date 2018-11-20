@@ -11,14 +11,15 @@
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import utils
-import classifier
-from evolution import Evolution
 import numpy as np
+import classifier
+import multiprocessing
+from evolution import Evolution
 import matplotlib.pyplot as plt
 # ---------------------------------------------------------------------------- #
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     # import data
     X, y = utils.load_data(
         filename='data_trimmed.csv', 
@@ -34,7 +35,6 @@ if __name__ == '__main__':
     mutRate = 0.3
     crRate = 0.5
     GenMax = 250
-    reps = 5
 
     evo = Evolution(
         dataset = dataset.tolist(),   # data samples 
@@ -43,9 +43,9 @@ if __name__ == '__main__':
         cx = crRate,                  # crossover rate
         mut = mutRate,                # mutation rate
         maxgen = GenMax,              # max number of generations
-        )
- 
-    pop, logbook, hof= evo.run(reps)
+    )
+
+    pop, logbook, hof = evo.run()
 
     # get features of the best individual
     tree = evo.get_tree(hof[0], plot=True)
@@ -75,5 +75,3 @@ if __name__ == '__main__':
 
     else:
         print('No features were selected!!!')
-
-    

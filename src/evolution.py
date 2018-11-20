@@ -15,8 +15,8 @@ import operator
 import numpy as np
 import sys, os
 import itertools
-import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 
 from deap import gp
@@ -24,6 +24,9 @@ from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
+
+import warnings
+warnings.filterwarnings("ignore")
 # -------------------------------------------------#
 
 class Evolution:
@@ -44,40 +47,176 @@ class Evolution:
         self.maxgen = maxgen   # set max number of generations 
         self.numfeatures = len(dataset[0]) - 1 # number of features
         
+        self.pset = self.build_primitive_set()
+        self.toolbox = self.build_toolbox()
+
+
+    def build_primitive_set(self):
+        '''
+            Define operators/terminals set. 
+        '''
         # setup evolution env.
-        self.pset = gp.PrimitiveSetTyped(
+        pset = gp.PrimitiveSetTyped(
             'MAIN', # codename for the dataset
             itertools.repeat(float, self.numfeatures), # type and number of features
             bool, # type of the target value
             'f_', # a prefix to encode feature names
         )
 
-        self.toolbox = base.Toolbox()
+        # boolean operators 
+        pset.addPrimitive(operator.and_, [bool, bool], bool)
+        pset.addPrimitive(operator.or_, [bool, bool], bool)
+        pset.addPrimitive(operator.not_, [bool], bool)
 
-        # set operator and terminal sets
-        self.set_opts()      
+        # floating point operators
+        pset.addPrimitive(np.add, [float,float], float)
+        pset.addPrimitive(np.subtract, [float,float], float)
+        pset.addPrimitive(np.multiply, [float,float], float)
+        pset.addPrimitive(self.div, [float,float], float)
+        pset.addPrimitive(np.exp, [float], float)
+        pset.addPrimitive(np.sin, [float], float)
+        pset.addPrimitive(np.cos, [float], float)
+        pset.addPrimitive(np.log, [float], float)
 
-        # set evolution functions
-        self.populate()
-        self.mutation()
-        self.crossover()
-        self.selection()
-        self.fitness()  
+        # logic operators
+        pset.addPrimitive(operator.gt, [float, float], bool)
+        pset.addPrimitive(operator.lt, [float, float], bool)
+        pset.addPrimitive(operator.eq, [float, float], bool)
+        pset.addPrimitive(self.ifelse, [float, float], float)
+
+        # terminals
+        pset.addEphemeralConstant( # random constant
+            "rand100", lambda: random.random() * 100, float
+        )
+
+        pset.addTerminal(False, bool)
+        pset.addTerminal(True, bool)
+
+        return pset
 
 
-    def run(self,):
+    def build_toolbox(self):
+        ''' 
+            Define functions to use in the GP toolbox
+        '''
+        toolbox = base.Toolbox()
+
+        creator.create("FitnessMax", 
+                        base.Fitness, 
+                        weights=(1.0,))
+
+        creator.create("Individual",
+                        gp.PrimitiveTree,
+                        fitness=creator.FitnessMax,
+                        pset=self.pset)
+
+        toolbox.register("initializer",
+                        gp.genHalfAndHalf,
+                        pset=self.pset,
+                        min_=1,
+                        max_=2)
+
+        toolbox.register("tree",
+                        tools.initIterate,
+                        creator.Individual,
+                        toolbox.initializer)
+
+        toolbox.register("population",
+                        tools.initRepeat,
+                        list,
+                        toolbox.tree)
+
+        toolbox.register("compile", 
+                        gp.compile, 
+                        pset=self.pset)
+
+        toolbox.register("expr_mut",
+                        gp.genHalfAndHalf,
+                        min_=0,
+                        max_=2)
+
+        # Fitness function similar to Wu & Banzhaf, 2001.
+        # Fi = TPRi x (1 - FPRi)^2
+        toolbox.register("evaluate", 
+                        self.fitness)
+
+        # One-CrossoverPoint
+        toolbox.register("mate",  
+                        gp.cxOnePoint)
+
+        # Uniform Mutation
+        toolbox.register("mutate", 
+                        gp.mutUniform, 
+                        expr=toolbox.expr_mut, 
+                        pset=self.pset)
+
+        # DoubleTournament Selection uses the size of the individuals
+        # in order to discriminate good solutions.
+        '''
+        toolbox.register("select", # selection function 
+                        tools.selDoubleTournament, 
+                        fitness_size = 2, # of individuals participating in each fitness tournament
+                        parsimony_size = 1.4, # of individuals participating in each size tournament
+                        fitness_first=True)
+        '''
+        toolbox.register("select", # selection function 
+                        tools.selTournament, 
+                        tournsize=3) 
+
+        # Control code-bloat: max depth of a tree
+        toolbox.decorate("mate", 
+                        gp.staticLimit(key=operator.attrgetter("height"), 
+                        max_value=17))
+
+        toolbox.decorate("mutate", 
+                        gp.staticLimit(key=operator.attrgetter("height"), 
+                        max_value=17))
+        
+        return toolbox
+
+
+    def fitness(self, individual):
+        '''
+            Fitness function similar to Wu & Banzhaf, 2001. 
+        '''
+        def eval(tree, samples):
+            # evaluate the sum of correctly identified cases
+            nTP = sum(
+                bool(tree(*case[:self.numfeatures])) == bool(case[self.numfeatures]) \
+                    for case in samples
+            ) / len(samples)
+
+            nFP = sum(
+                bool(tree(*case[:self.numfeatures])) != bool(case[self.numfeatures]) \
+                    for case in samples
+            ) / len(samples)
+
+            return nTP * pow((1 - nFP), 2)
+
+        # transform the tree expression in a callable function
+        tree = self.toolbox.compile(expr=individual)
+        
+        # randomly sample cases from the dataset to use as test cases
+        samples = random.sample(self.dataset, len(self.dataset)//2)
+
+        fit = eval(tree, samples)
+
+        return fit,
+
+
+    def run(self):
         '''
             Run Evolution and return statistical logs and best individuals
         '''
-        # set a fixed seed for the random number generator
+        # log stats [avg, std, min, max] fitness values per gen.
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register('avg', np.mean)
+        stats.register('std', np.std)
+        stats.register('min', np.min)
+        stats.register('max', np.max)
 
         pop = self.toolbox.population(self.popsize)
         hof = tools.HallOfFame(self.hofsize)
-        stats = tools.Statistics(lambda ind: ind.fitness.values)
-        stats.register("avg", np.mean)
-        stats.register("std", np.std)
-        stats.register("min", np.min)
-        stats.register("max", np.max)
 
         pop, logbook = algorithms.eaSimple(
             pop, 
@@ -89,126 +228,8 @@ class Evolution:
             halloffame = hof, 
             verbose = 1
         )
+
         return pop, logbook, hof, 
-
-
-    def set_opts(self):
-        '''
-            Define operators set. 
-        '''
-        # boolean operators (Removed)
-        self.pset.addPrimitive(operator.and_, [bool, bool], bool)
-        self.pset.addPrimitive(operator.or_, [bool, bool], bool)
-        self.pset.addPrimitive(operator.not_, [bool], bool)
-
-        # floating point operators
-        self.pset.addPrimitive(np.add, [float,float], float)
-        self.pset.addPrimitive(np.subtract, [float,float], float)
-        self.pset.addPrimitive(np.multiply, [float,float], float)
-        self.pset.addPrimitive(self.div, [float,float], float)
-        self.pset.addPrimitive(np.exp, [float], float)
-        self.pset.addPrimitive(np.sin, [float], float)
-        self.pset.addPrimitive(np.cos, [float], float)
-        self.pset.addPrimitive(np.log, [float], float)
-
-        # logic operators
-        self.pset.addPrimitive(operator.gt, [float, float], bool)
-        self.pset.addPrimitive(operator.lt, [float, float], bool)
-        self.pset.addPrimitive(operator.eq, [float, float], bool)
-        self.pset.addPrimitive(self.ifelse, [float, float], float)
-
-        # terminals
-        self.pset.addEphemeralConstant( # random constant
-            "rand100", lambda: random.random() * 100, float
-        )
-        self.pset.addTerminal(False, bool)
-        self.pset.addTerminal(True, bool)
-
-
-    def mutation(self,
-        #individuals,
-        #age
-        ):
-        '''
-            Define a mutation function
-        '''
-        ''' Axel's Swap Mutation - Unsure how we are planning to store whether its an elif and all that. ???
-        #Individuals (3D matrix - first layer of matrix is population/genome, second layer is age of individuals)
-        #Mutation - holds index of individuals that will be mutated
-        SwapSpring = np.zeros(len(individuals),len(mutation),2)
-        for i in range(len(mutation)):
-            location = mutation[i]
-            rowi = individuals[1][i][:]
-            a = np.random.permutation(len(individuals[1][i]))
-            temp = rowi[a[2]]
-            rowi[a[2]] = row[a[1]]
-            rowi[a[1]] = temp
-            SwapSpring[1][i][:] = rowi #Storing mutated genome
-            SwapSpring[2][i] = individuals[2][i] #Storing Age of genome.
-        '''
-
-        self.toolbox.register("expr_mut", # mutation criteria
-            gp.genFull, min_=0, max_=2
-        )
-        
-        self.toolbox.register("mutate", # mutation function
-            gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset
-        )
-    
-
-    def crossover(self, ):
-        '''
-            Define a crossover function
-        '''
-        ''' Axel's CrossOver
-        ****Check CycleCross.py in notebook folder
-        '''
-
-        self.toolbox.register("mate",  # crossover function
-            gp.cxOnePoint #Cannot use tools as they work of sequences and are not compatible with GP inputs
-        )
-
-
-    def selection(self, ):
-        '''
-            Define a selection function
-        '''
-        self.toolbox.register("select", # selection function 
-            tools.selTournament, tournsize=3
-        )
-
-
-    def fitness(self, ):
-        '''
-            Define a fitness function
-        '''
-        def eval(individual):
-            nTP = 0
-            nFP = 0
-            nCases = 100
-            # transform the tree expression in a callable function
-            func = self.toolbox.compile(expr=individual)
-            
-            # randomly sample 100 cases from the dataset for testing
-            test_samples = random.sample(self.dataset, nCases)
-            
-            #Fitnes of TPR and FPR
-
-            # evaluate the sum of correctly identified cases
-            nTP = sum(
-                bool(func(*case[:self.numfeatures])) == bool(case[self.numfeatures]) \
-                    for case in test_samples
-            ) / nCases
-
-            nFP = sum(
-                bool(func(*case[:self.numfeatures])) != bool(case[self.numfeatures]) \
-                    for case in test_samples
-            ) / nCases
-
-            result = nTP * pow((1 - nFP),2)
-            return result,
-
-        self.toolbox.register("evaluate", eval)
 
 
     def get_tree(self, individual, plot=False):
@@ -236,32 +257,6 @@ class Evolution:
         return labels
 
     
-    def populate(self, ):
-        '''
-            Define population scheme
-        '''
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        creator.create("Individual", 
-            gp.PrimitiveTree, fitness=creator.FitnessMax
-        )
-        
-        self.toolbox.register("expr", # create expression
-            gp.genHalfAndHalf, pset=self.pset, min_=1, max_=2
-        )
-        
-        self.toolbox.register("individual", # create individual (tree)
-            tools.initIterate, creator.Individual, self.toolbox.expr
-        )
-        
-        self.toolbox.register("population",  # create a population
-            tools.initRepeat, list, self.toolbox.individual
-        )
-        
-        self.toolbox.register("compile", 
-            gp.compile, pset=self.pset
-        )
-
-
     def div(self, numerator, denominator): 
         '''
             Override division operator to handle division by zero

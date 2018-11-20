@@ -152,17 +152,17 @@ class Evolution:
 
         # DoubleTournament Selection uses the size of the individuals
         # in order to discriminate good solutions.
-        '''
+        
         toolbox.register("select", # selection function 
                         tools.selDoubleTournament, 
-                        fitness_size = 2, # of individuals participating in each fitness tournament
-                        parsimony_size = 1.4, # of individuals participating in each size tournament
+                        fitness_size = 7, # of individuals participating in each fitness tournament
+                        parsimony_size = 1.8, # of individuals participating in each size tournament
                         fitness_first=True)
-        '''
+        '''        
         toolbox.register("select", # selection function 
                         tools.selTournament, 
                         tournsize=3) 
-
+        '''
         # Control code-bloat: max depth of a tree
         toolbox.decorate("mate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 

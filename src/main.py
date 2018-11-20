@@ -32,8 +32,8 @@ if __name__ == '__main__':
     dataset = np.column_stack((X, y))
     
     popsize = 500
-    mutRate = 0.3
-    crRate = 0.5
+    mutRate = 0.3 #If bloating control is removed use 0.3
+    crRate = 0.7 #If bloating control removed use 0.5
     GenMax = 250
 
     evo = Evolution(

@@ -43,13 +43,13 @@ if __name__ == '__main__':
     reps = 5
     states = 1
 
-    i = 0 
+    i = 1 
     evo = Evolution(
         dataset = dataset.tolist(),      # data samples 
         popsize = popsize[3],            # initial population size
         hofsize = 10,                    # the number of best individual to track
-        cx = crRate[6],                  # crossover rate
-        mut = mutRate[i],                # mutation rate
+        cx = crRate[i],                  # crossover rate
+        mut = mutRate[0],                # mutation rate
         maxgen = GenMax[2],              # max number of generations
         )
             
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     #print(logs)
 
     cwd = os.getcwd()
-    pth_to_save =  cwd + "/results/cm " + str(crRate[i]) + ".csv"
+    pth_to_save =  cwd + "/results/cx " + str(crRate[i]) + ".csv"
     logs.to_csv(pth_to_save)
 
     print('Done')

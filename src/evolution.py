@@ -143,13 +143,14 @@ class Evolution:
                         gp.mutUniform, 
                         expr=toolbox.expr_mut, 
                         pset=self.pset)
-        '''
+        
         toolbox.register("select", # selection function 
                 tools.selTournament, 
                 tournsize=3) 
         '''
         # DoubleTournament Selection uses the size of the individuals
         # in order to discriminate good solutions.
+        
         toolbox.register("select", # selection function 
                         tools.selDoubleTournament, 
                         fitness_size = 7, # of individuals participating in each fitness tournament
@@ -164,11 +165,11 @@ class Evolution:
         toolbox.decorate("mutate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 
                         max_value=17))
-        
+        '''
 
         # enable multiprocessing 
-        pool = ProcessingPool(cpu_count())
-        toolbox.register('map', pool.map)
+        # pool = ProcessingPool(cpu_count())
+        # toolbox.register('map', pool.map)
         
         return toolbox
 
@@ -244,7 +245,7 @@ class Evolution:
 
         # the generational loop
         for gen in range(1, self.maxgen + 1):
-            
+            np.random.seed(2018)
             # select the next generation individuals
             offspring = self.toolbox.select(pop, len(pop))
 

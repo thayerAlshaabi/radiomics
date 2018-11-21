@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     # set a fix seed
-    np.random.seed(2018)
+    # np.random.seed(2018)
 
     # import data
     X, y = utils.load_data(
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
-    GenMax = 2
+    GenMax = 250
 
     evo = Evolution(
         dataset = dataset.tolist(),   # data samples 

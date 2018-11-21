@@ -13,13 +13,15 @@
 import utils
 import numpy as np
 import classifier
-import multiprocessing
 from evolution import Evolution
 import matplotlib.pyplot as plt
 # ---------------------------------------------------------------------------- #
 
-
 if __name__ == '__main__':
+
+    # set a fix seed
+    np.random.seed(2018)
+
     # import data
     X, y = utils.load_data(
         filename='data_trimmed.csv', 
@@ -33,8 +35,8 @@ if __name__ == '__main__':
     
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
-    crRate = 0.7 #If bloating control removed use 0.5
-    GenMax = 250
+    crRate = 0.5 #If bloating control removed use 0.5 (.7)
+    GenMax = 2
 
     evo = Evolution(
         dataset = dataset.tolist(),   # data samples 
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         maxgen = GenMax,              # max number of generations
     )
 
-    pop, logbook, hof = evo.run()
+    pop, logbook, hof = evo.run(verbose=1)
 
     # get features of the best individual
     tree = evo.get_tree(hof[0], plot=True)

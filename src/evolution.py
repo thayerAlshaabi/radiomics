@@ -27,6 +27,9 @@ from deap import tools
 
 import warnings
 warnings.filterwarnings("ignore")
+
+from pathos.helpers import cpu_count
+from pathos.multiprocessing import ProcessingPool
 # -------------------------------------------------#
 
 class Evolution:
@@ -45,20 +48,18 @@ class Evolution:
         self.cx = cx           # set crossover rate
         self.mut = mut         # set mutation rate
         self.maxgen = maxgen   # set max number of generations 
-        self.numfeatures = len(dataset[0]) - 1 # number of features
-        
+        self.nfeatures = len(dataset[0]) - 1 # number of features
         self.pset = self.build_primitive_set()
         self.toolbox = self.build_toolbox()
 
 
     def build_primitive_set(self):
-        '''
-            Define operators/terminals set. 
-        '''
+        ''' Define operators/terminals set. '''
+
         # setup evolution env.
         pset = gp.PrimitiveSetTyped(
             'MAIN', # codename for the dataset
-            itertools.repeat(float, self.numfeatures), # type and number of features
+            itertools.repeat(float, self.nfeatures), # type and number of features
             bool, # type of the target value
             'f_', # a prefix to encode feature names
         )
@@ -96,9 +97,8 @@ class Evolution:
 
 
     def build_toolbox(self):
-        ''' 
-            Define functions to use in the GP toolbox
-        '''
+        ''' Define functions to use in the GP toolbox '''
+
         toolbox = base.Toolbox()
 
         creator.create("FitnessMax", 
@@ -126,10 +126,6 @@ class Evolution:
                         list,
                         toolbox.tree)
 
-        toolbox.register("compile", 
-                        gp.compile, 
-                        pset=self.pset)
-
         toolbox.register("expr_mut",
                         gp.genHalfAndHalf,
                         min_=0,
@@ -137,32 +133,29 @@ class Evolution:
 
         # Fitness function similar to Wu & Banzhaf, 2001.
         # Fi = TPRi x (1 - FPRi)^2
-        toolbox.register("evaluate", 
-                        self.fitness)
+        toolbox.register("evaluate", self.fitness)
 
         # One-CrossoverPoint
-        toolbox.register("mate",  
-                        gp.cxOnePoint)
+        toolbox.register("mate", gp.cxOnePoint)
 
         # Uniform Mutation
         toolbox.register("mutate", 
                         gp.mutUniform, 
                         expr=toolbox.expr_mut, 
                         pset=self.pset)
-
+        '''
+        toolbox.register("select", # selection function 
+                tools.selTournament, 
+                tournsize=3) 
+        '''
         # DoubleTournament Selection uses the size of the individuals
         # in order to discriminate good solutions.
-        
         toolbox.register("select", # selection function 
                         tools.selDoubleTournament, 
                         fitness_size = 7, # of individuals participating in each fitness tournament
                         parsimony_size = 1.8, # of individuals participating in each size tournament
                         fitness_first=True)
-        '''        
-        toolbox.register("select", # selection function 
-                        tools.selTournament, 
-                        tournsize=3) 
-        '''
+        
         # Control code-bloat: max depth of a tree
         toolbox.decorate("mate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 
@@ -172,71 +165,112 @@ class Evolution:
                         gp.staticLimit(key=operator.attrgetter("height"), 
                         max_value=17))
         
+
+        # enable multiprocessing 
+        pool = ProcessingPool(cpu_count())
+        toolbox.register('map', pool.map)
+        
         return toolbox
 
 
     def fitness(self, individual):
-        '''
-            Fitness function similar to Wu & Banzhaf, 2001. 
-        '''
+        ''' Fitness function similar to Wu & Banzhaf, 2001. '''
+
         def eval(tree, samples):
             # evaluate the sum of correctly identified cases
             nTP = sum(
-                bool(tree(*case[:self.numfeatures])) == bool(case[self.numfeatures]) \
+                bool(tree(*case[:self.nfeatures])) == bool(case[self.nfeatures]) \
                     for case in samples
             ) / len(samples)
 
             nFP = sum(
-                bool(tree(*case[:self.numfeatures])) != bool(case[self.numfeatures]) \
+                bool(tree(*case[:self.nfeatures])) != bool(case[self.nfeatures]) \
                     for case in samples
             ) / len(samples)
 
             return nTP * pow((1 - nFP), 2)
 
         # transform the tree expression in a callable function
-        tree = self.toolbox.compile(expr=individual)
+        tree = gp.compile(individual, self.pset)
         
         # randomly sample cases from the dataset to use as test cases
         samples = random.sample(self.dataset, len(self.dataset)//2)
 
-        fit = eval(tree, samples)
-
-        return fit,
+        return eval(tree, samples),
 
 
-    def run(self):
-        '''
-            Run Evolution and return statistical logs and best individuals
-        '''
-        # log stats [avg, std, min, max] fitness values per gen.
+    def assess(self, pop):
+        ''' Evaluate fitness of individuals in the current population '''
+        
+        # find individuals that has not been evaluated
+        individuals = [i for i in pop if not i.fitness.valid]
+
+        # run fitness function on the selected individuals
+        fitnesses = self.toolbox.map(self.toolbox.evaluate, individuals)
+        
+        # update fitness values
+        for i, fit in zip(individuals, fitnesses):
+            i.fitness.values = fit
+        
+        return individuals
+
+
+    def run(self, verbose=0):
+        ''' Run Evolution and return statistical logs and best individuals '''
+
+        pop = self.toolbox.population(self.popsize)
+        hof = tools.HallOfFame(self.hofsize)
+
+        # create a logbook to keep track of generational updates
+        logbook = tools.Logbook()
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register('avg', np.mean)
         stats.register('std', np.std)
         stats.register('min', np.min)
         stats.register('max', np.max)
+        logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
-        pop = self.toolbox.population(self.popsize)
-        hof = tools.HallOfFame(self.hofsize)
+        # evaluate first set of individuals 
+        individuals = self.assess(pop)
 
-        pop, logbook = algorithms.eaSimple(
-            pop, 
-            self.toolbox,
-            cxpb = self.cx, 
-            mutpb = self.mut, 
-            ngen = self.maxgen,
-            stats = stats, 
-            halloffame = hof, 
-            verbose = 1
-        )
+        # update the hall
+        if hof is not None: hof.update(pop)
+        
+        # update logbook
+        record = stats.compile(pop) if stats else {}
+        logbook.record(gen=0, nevals=len(individuals), **record)
+        
+        if verbose: print(logbook.stream)
+
+        # the generational loop
+        for gen in range(1, self.maxgen + 1):
+            
+            # select the next generation individuals
+            offspring = self.toolbox.select(pop, len(pop))
+
+            # vary the pool of individuals
+            offspring = algorithms.varAnd(offspring, self.toolbox, self.cx, self.mut)
+
+            # evaluate current population
+            individuals = self.assess(offspring)
+
+            # update the hall of fame with the generated individuals
+            if hof is not None: hof.update(offspring)
+
+            # replace the current population by the offspring
+            pop[:] = offspring
+
+            # update logbook
+            record = stats.compile(pop) if stats else {}
+            logbook.record(gen=gen, nevals=len(individuals), **record)
+
+            if verbose: print(logbook.stream)
 
         return pop, logbook, hof, 
 
 
     def get_tree(self, individual, plot=False):
-        '''
-            Print tree structure
-        '''
-        expr = gp.genFull(self.pset, min_=1, max_=3)
+        ''' Print tree structure '''
 
         nodes, edges, labels = gp.graph(individual)
 
@@ -258,9 +292,8 @@ class Evolution:
 
     
     def div(self, numerator, denominator): 
-        '''
-            Override division operator to handle division by zero
-        '''
+        ''' Override division operator to handle division by zero '''
+
         try: 
             return numerator / denominator
         except ZeroDivisionError: 
@@ -268,9 +301,8 @@ class Evolution:
 
 
     def ifelse(self, feature1, feature2):
-        '''
-            Define a new operator for if/else 
-        '''
+        ''' Define a new operator for if/else '''
+        
         if feature1 < feature2:  
             return -feature1
         else: 

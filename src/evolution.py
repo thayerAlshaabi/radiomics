@@ -140,8 +140,8 @@ class Evolution:
 
         # Uniform Mutation
         toolbox.register("mutate", 
-                        gp.mutUniform, 
-                        expr=toolbox.expr_mut, 
+                        gp.mutNodeReplacement,
+                        #expr=toolbox.expr_mut, 
                         pset=self.pset)
         
         toolbox.register("select", # selection function 

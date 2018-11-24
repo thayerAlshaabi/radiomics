@@ -108,7 +108,7 @@ if __name__ == '__main__':
     #print(logs)
 
     cwd = os.getcwd()
-    pth_to_save =  cwd + "/results/mutNodeReplacement_.6_cxOnePoint_.6_selDoubleTournament_codeBloatOn.csv"
+    pth_to_save =  cwd + "/results/mutEphemeralAll.6_cxOnePoint_.6_selDoubleTournament_codeBloatOn.csv"
     logs.to_csv(pth_to_save)
 
     print('Done')

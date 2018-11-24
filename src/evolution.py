@@ -141,9 +141,9 @@ class Evolution:
         # Uniform Mutation
         toolbox.register("mutate", 
                         gp.mutNodeReplacement,
-                        #expr=toolbox.expr_mut, 
+           #             expr=toolbox.expr_mut, 
                         pset=self.pset)
-        
+        '''
         toolbox.register("select", # selection function 
                 tools.selTournament, 
                 tournsize=3) 
@@ -165,7 +165,7 @@ class Evolution:
         toolbox.decorate("mutate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 
                         max_value=17))
-        '''
+
 
         # enable multiprocessing 
         # pool = ProcessingPool(cpu_count())

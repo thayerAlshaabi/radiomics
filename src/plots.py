@@ -14,24 +14,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import glob
-import csv
 import os
 import re
 # ---------------------------------------------------------------------------- #
-
-def csvReader(files):
-
-    with open(files) as f:
-        reader = csv.reader(f)
-        next(reader) #Skips Headers
-
 
 cwd = os.getcwd()
 base = []
 for root, dirs, files in os.walk(cwd + "/results/", topdown = True):
     plt.figure(1)
     for name in files:
-        if ((re.fullmatch('cx', re.split(r'\W+', name)[0])) and name.endswith(".csv")):
+        if ((re.fullmatch('mutUniform', re.split(r'\W+', name)[0])) and name.endswith(".csv")):
             filename = os.path.join(root,name)
             base.append(os.path.splitext(os.path.basename(filename))[0])
             df = pd.read_csv(filename)

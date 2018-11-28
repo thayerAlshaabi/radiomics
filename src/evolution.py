@@ -153,7 +153,7 @@ class Evolution:
                         fitness_size = 7, # of individuals participating in each fitness tournament
                         parsimony_size = 1.8, # of individuals participating in each size tournament
                         fitness_first=True)
-        
+     
         # Control code-bloat: max depth of a tree
         toolbox.decorate("mate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 

@@ -10,7 +10,7 @@
 
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
-import sys, os
+import sys, os, datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -178,3 +178,19 @@ def calc_auc(fps, tps, plot_roc=False):
         plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc)
         
     return aucs
+
+def csv_save(method, auc):
+    logs = pd.DataFrame()
+
+    logs['Method'] = [method]
+    for i in range(len(auc)):
+        logs['AUC' + str(i)] = [auc[i]]
+    print(logs)
+    
+    now = datetime.datetime.now()
+    cwd = os.getcwd()
+    pth_to_save =  cwd + "/results/" + str(now.strftime("%Y-%m-%d %H:%M")) +  ".csv"
+    logs.to_csv(pth_to_save)
+    # # logs['']
+    
+    

@@ -3,6 +3,7 @@ from deap import gp
 import networkx as nx
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
+import numpy as np
 
 
 def get_tree(individual, plot=False, fig_number=-1):
@@ -45,19 +46,40 @@ def eval_tree(tree, samples):
     return nTP * pow((1 - nFP), 2)
 
 
-def parse_features(hof):
+def parse_features(hof, condition = 'GP', count = 0):
     ''' Get the indecies of the selected features '''
 
     ''' 
         we need to loop through each guy in HOF 
         and get a set of their 'unique' features  
-        -- make sure to pass a figure number to plot tress in different figures
+        -- make sure to pass a figure number to plot trees in different figures
     '''
 
-    features = get_tree(hof[0], plot=True)
-    features_idx = [int(f[2:]) for f in features.values() if str(f).startswith('f_')]
+    featureArray = []
+    # featureArrayTemporary = []
 
-    return features_idx
+    for i in range(len(hof)):
+        tree = get_tree(hof[i], plot=True, fig_number=count)
+        features = [int(f[2:]) for f in tree.values() if str(f).startswith('f_')]
+
+        # for element in range(len(features)):
+        for j in range(len(features)):
+            featureArray.append(features[j])
+        print("Features: ", featureArray)
+        count += 1
+
+
+    uniques = np.unique(featureArray)
+    print('Unique: ', uniques)
+
+        
+    return np.unique(featureArray), count
+
+    # plt.figure(i)
+    # features = get_tree(hof[0], plot=True)
+    # features_idx = [int(f[2:]) for f in features.values() if str(f).startswith('f_')]
+
+    #return features_idx
 
 
 '''

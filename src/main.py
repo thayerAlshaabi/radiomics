@@ -25,7 +25,7 @@ def run_deap(X, y):
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
-    GenMax = 250
+    GenMax = 2
     
     # concatenate selected features with their target values
     dataset = np.column_stack((X, y))
@@ -47,7 +47,8 @@ def run_deap(X, y):
 if __name__ == '__main__':
     seed = 2018
     folds = 5  
-
+    method = 'gp-rf'
+    
     # set a fix seed
     np.random.seed(seed)
 
@@ -68,6 +69,7 @@ if __name__ == '__main__':
 
     fprs, tprs = [], []
     # run with specified cross-validation folds
+    count = 0
     for itr, (train, test) in enumerate(cv):
         print('--Running fold ', itr+1)
         #utils.progressBar(itr+1, folds) 
@@ -86,18 +88,21 @@ if __name__ == '__main__':
         hof_prime = [hof[i] for i in test_scores.argsort()[-5:][::-1]]
 
         # parse features from the selected trees
-        features_idx = parser.parse_features(hof_prime)
+        features_idx, count = parser.parse_features(hof_prime, method, count)
 
         print('\nNumber of selected features: {}\n\n'.format(
             len(features_idx))
         )
-
-        fp, tp = classifier.eval(
-            X[train[:, None], features_idx], 
-            X[test[:, None],  features_idx],
-            y[train], y[test],  
-            clf = 'rf', seed=seed
-        )
+        if ((method != 'svm') or (method != 'rf')):
+            cond = method.split('-')[1]
+            if ((cond == 'rf') or (cond == 'svm')):
+            
+                fp, tp = classifier.eval(
+                    X[train[:, None], features_idx], 
+                    X[test[:, None],  features_idx],
+                    y[train], y[test],  
+                    clf = cond, seed=seed
+                )
 
         tprs.append(tp)
         fprs.append(fp)
@@ -105,6 +110,8 @@ if __name__ == '__main__':
     auc_scores = utils.calc_auc(fprs, tprs, plot_roc=True)
     print('kfolds Cross-Validation AUC: ', auc_scores)
 
+    utils.csv_save(method, auc_scores)
+
     print('Done')
-    plt.show() # show figures
+    # plt.show() # show figures
 

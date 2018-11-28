@@ -5,23 +5,23 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
-    Copyright (c) 2018 
+    Copyright (c) 10 
 '''
 
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import sys, os
-import pandas as pd
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import auc
 from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
 # ---------------------------------------------------------------------------- #
 
 
 def progressBar(value, endvalue, bar_length=50):
-    '''
-        A simple function to print a progressBar on the screen
-    '''
+    ''' A simple function to print a progressBar on the screen '''
     percent = float(value) / endvalue
     arrow = '=' * int(round(percent * bar_length)-1) + '>'
     spaces = ' ' * (bar_length - len(arrow))
@@ -71,7 +71,7 @@ def resample_df(df, method):
             df_pos,
             n_samples=len(df_neg),
             replace=True, 
-            random_state=2018
+            random_state=10
         )
         return pd.concat([df_pos_upsampled, df_neg])
 
@@ -81,7 +81,7 @@ def resample_df(df, method):
             df_neg,
             n_samples=len(df_pos),
             replace=True, 
-            random_state=2018
+            random_state=10
         )
         return pd.concat([df_pos, df_neg_downsampled])
 
@@ -118,3 +118,63 @@ def load_data(
     y = df.ca.values
 
     return X,y
+
+
+def plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc):
+    ''' Plot roc curve per fold and mean/std score of all runs '''
+
+    plt.figure(1, figsize=(10,8))
+
+    plt.plot(
+        mean_fpr, mean_tpr, color='k',
+        label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc)
+    )
+
+    # plot std
+    std_tpr = np.std(tprs, axis=0)
+    tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+    tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+    plt.fill_between(
+        mean_fpr, tprs_lower, tprs_upper,
+        color='grey', alpha=.2, label=r'$\pm$ std.'
+    )
+
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel('False Positive Rate', fontsize=18)
+    plt.ylabel('True Positive Rate', fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.title('ROC Curve', fontsize=20)
+    plt.legend(loc="lower right", fontsize=14)
+
+
+def calc_auc(fps, tps, plot_roc=False):
+    ''' Calculate mean ROC/AUC for a given set of 
+        true positives (tps) & false positives (fps) '''
+
+    tprs, aucs = [], []
+    mean_fpr = np.linspace(0, 1, 100)
+    
+    for itr, (_fp, _tp) in enumerate(zip(fps, tps)):
+        tprs.append(np.interp(mean_fpr, _fp, _tp))
+        tprs[-1][0] = 0.0
+        roc_auc = auc(_fp, _tp)
+        aucs.append(roc_auc)
+
+        if plot_roc:
+            plt.figure(1, figsize=(10,8))
+            plt.plot(
+                _fp, _tp, lw=1, alpha=0.5,
+                label='ROC fold %d (AUC = %0.2f)' % (itr+1, roc_auc)
+            )
+
+    mean_tpr = np.mean(tprs, axis=0)
+    mean_tpr[-1] = 1.0
+    mean_auc = auc(mean_fpr, mean_tpr)
+    std_auc = np.std(aucs)
+
+    if plot_roc:
+        plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc)
+        
+    return aucs

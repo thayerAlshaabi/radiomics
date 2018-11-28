@@ -10,14 +10,14 @@
 
 # Libraries and dependencies
 # -------------------------------------------------#
+import utils
+import parser
 import random
 import operator
 import numpy as np
 import sys, os
 import itertools
-import networkx as nx
 import matplotlib.pyplot as plt
-from networkx.drawing.nx_agraph import graphviz_layout
 
 from deap import gp
 from deap import algorithms
@@ -27,9 +27,6 @@ from deap import tools
 
 import warnings
 warnings.filterwarnings("ignore")
-
-from pathos.helpers import cpu_count
-from pathos.multiprocessing import ProcessingPool
 # -------------------------------------------------#
 
 class Evolution:
@@ -87,7 +84,7 @@ class Evolution:
 
         # terminals
         pset.addEphemeralConstant( # random constant
-            "rand100", lambda: random.random() * 100, float
+            'rand'+str(random.randint(1,100)), lambda: random.random() * 100, float
         )
 
         pset.addTerminal(False, bool)
@@ -151,7 +148,6 @@ class Evolution:
         '''
         # DoubleTournament Selection uses the size of the individuals
         # in order to discriminate good solutions.
-        
         toolbox.register("select", # selection function 
                         tools.selDoubleTournament, 
                         fitness_size = 7, # of individuals participating in each fitness tournament
@@ -167,41 +163,21 @@ class Evolution:
                         gp.staticLimit(key=operator.attrgetter("height"), 
                         max_value=17))
 
-
-        # enable multiprocessing 
-        # pool = ProcessingPool(cpu_count())
-        # toolbox.register('map', pool.map)
-        
         return toolbox
 
 
     def fitness(self, individual):
         ''' Fitness function similar to Wu & Banzhaf, 2001. '''
-
-        def eval(tree, samples):
-            # evaluate the sum of correctly identified cases
-            nTP = sum(
-                bool(tree(*case[:self.nfeatures])) == bool(case[self.nfeatures]) \
-                    for case in samples
-            ) / len(samples)
-
-            nFP = sum(
-                bool(tree(*case[:self.nfeatures])) != bool(case[self.nfeatures]) \
-                    for case in samples
-            ) / len(samples)
-
-            return nTP * pow((1 - nFP), 2)
-
         # transform the tree expression in a callable function
         tree = gp.compile(individual, self.pset)
         
         # randomly sample cases from the dataset to use as test cases
         samples = random.sample(self.dataset, len(self.dataset)//2)
 
-        return eval(tree, samples),
+        return parser.eval_tree(tree, samples),
 
 
-    def assess(self, pop):
+    def assess_pop(self, pop):
         ''' Evaluate fitness of individuals in the current population '''
         
         # find individuals that has not been evaluated
@@ -233,7 +209,7 @@ class Evolution:
         logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
         # evaluate first set of individuals 
-        individuals = self.assess(pop)
+        individuals = self.assess_pop(pop)
 
         # update the hall
         if hof is not None: hof.update(pop)
@@ -254,7 +230,7 @@ class Evolution:
             offspring = algorithms.varAnd(offspring, self.toolbox, self.cx, self.mut)
 
             # evaluate current population
-            individuals = self.assess(offspring)
+            individuals = self.assess_pop(offspring)
 
             # update the hall of fame with the generated individuals
             if hof is not None: hof.update(offspring)
@@ -269,28 +245,6 @@ class Evolution:
             if verbose: print(logbook.stream)
 
         return pop, logbook, hof, 
-
-
-    def get_tree(self, individual, plot=False):
-        ''' Print tree structure '''
-
-        nodes, edges, labels = gp.graph(individual)
-
-        if plot:
-            plt.figure(1, figsize=(10,8))
-            tree = nx.Graph()
-            tree.add_nodes_from(nodes)
-            tree.add_edges_from(edges)
-            pos = graphviz_layout(tree, prog="dot")
-
-            nx.draw_networkx_nodes(tree, pos, node_color='white')
-            nx.draw_networkx_edges(tree, pos)
-            nx.draw_networkx_labels(tree, pos, labels)
-
-            ax = plt.gca()
-            ax.set_axis_off()
-
-        return labels
 
     
     def div(self, numerator, denominator): 

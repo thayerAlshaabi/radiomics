@@ -11,32 +11,24 @@
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import utils
-import numpy as np
+import parser
+import operator
 import classifier
-from evolution import Evolution
+import numpy as np
+from deap import gp
 import matplotlib.pyplot as plt
+from evolution import Evolution
+from sklearn.model_selection import StratifiedKFold
 # ---------------------------------------------------------------------------- #
 
-if __name__ == '__main__':
-
-    # set a fix seed
-    # np.random.seed(2018)
-
-    # import data
-    X, y = utils.load_data(
-        filename='data_trimmed.csv', 
-        clean=False,
-        normalize=True,
-        resample=2 # (2) to downsample the negative cases
-    )  
-
-    # concatenate selected features with their target values
-    dataset = np.column_stack((X, y))
-    
+def run_deap(X, y):
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
     GenMax = 250
+    
+    # concatenate selected features with their target values
+    dataset = np.column_stack((X, y))
 
     evo = Evolution(
         dataset = dataset.tolist(),   # data samples 
@@ -49,31 +41,70 @@ if __name__ == '__main__':
 
     pop, logbook, hof = evo.run(verbose=1)
 
-    # get features of the best individual
-    tree = evo.get_tree(hof[0], plot=True)
-    features_idx = [int(f[2:]) for f in tree.values() if str(f).startswith('f_')] 
+    return evo, pop, logbook, hof
 
-    # filter out unselected features
-    selected_features = X[:, features_idx] 
-    
-    if len(selected_features):
+
+if __name__ == '__main__':
+    seed = 2018
+    folds = 5  
+
+    # set a fix seed
+    np.random.seed(seed)
+
+    # import data
+    X, y = utils.load_data(
+        filename='data_trimmed.csv', 
+        clean=False,
+        normalize=True,
+        resample=2 # (2) to downsample the negative cases
+    )  
+
+    # setup cross-validation 
+    cv = StratifiedKFold(
+        n_splits=folds, 
+        shuffle=True, 
+        random_state=seed
+    ).split(X, y)
+
+    fprs, tprs = [], []
+    # run with specified cross-validation folds
+    for itr, (train, test) in enumerate(cv):
+        print('--Running fold ', itr+1)
+        #utils.progressBar(itr+1, folds) 
+
+        evo, pop, logbook, hof = run_deap(X[train], y[train])
+
+        test_scores = np.zeros(len(hof))
+
+        # evaluate trees in the current hof array on the testing set
+        for i in range(len(hof)):
+            tree = gp.compile(hof[i], evo.pset)
+            dataset = np.column_stack((X[test], y[test]))
+            test_scores[i] = parser.eval_tree(tree, dataset)
+        
+        # get top 5 trees based on their scores on the testing set
+        hof_prime = [hof[i] for i in test_scores.argsort()[-5:][::-1]]
+
+        # parse features from the selected trees
+        features_idx = parser.parse_features(hof_prime)
+
         print('\nNumber of selected features: {}\n\n'.format(
-            selected_features.shape[1])
+            len(features_idx))
         )
 
-        # evaluate selected features
-        print('Evaluating features...')
-        auc_score = classifier.eval(
-            selected_features, y, 
-            clf = 'rf',  
-            folds=10, 
-            plot_roc=True,
-            plot_confusion_matrix=True,   
+        fp, tp = classifier.eval(
+            X[train[:, None], features_idx], 
+            X[test[:, None],  features_idx],
+            y[train], y[test],  
+            clf = 'rf', seed=seed
         )
 
-        # show figures
-        print('Done')
-        plt.show()
+        tprs.append(tp)
+        fprs.append(fp)
 
-    else:
-        print('No features were selected!!!')
+    auc_scores = utils.calc_auc(fprs, tprs, plot_roc=True)
+    print('kfolds Cross-Validation AUC: ', auc_scores)
+
+    print('Done')
+    plt.show() # show figures
+

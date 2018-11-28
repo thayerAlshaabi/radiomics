@@ -51,7 +51,6 @@ if __name__ == '__main__':
         maxgen = GenMax[2],              # max number of generations
         )
             
-
     logs = pd.DataFrame()
 
     gen = np.zeros((reps, GenMax[2]+1))
@@ -70,13 +69,6 @@ if __name__ == '__main__':
         mini[l][:] = logbook.select('min')
         maxi[l][:] = logbook.select('max')
         
-        # logs['reps'] = l
-        # logs['gen'] = logbook.select('gen')
-        # logs['nevals'] = logbook.select("nevals")
-        # logs['avg'] = logbook.select("avg")
-        # logs['min'] = logbook.select("min")
-        # logs['max'] = logbook.select("max")
-    
     AvgEval = []
     Avg = []
     AvgMin = []

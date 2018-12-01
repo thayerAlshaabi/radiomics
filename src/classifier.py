@@ -36,30 +36,13 @@ def find_best_config(X, y, clf, folds):
         }
     elif isinstance(clf, SVC):
         c = [0.1, 1, 10, 50, 75, 100]
-        param_grid = [
-            {
-                'kernel':['linear'], 
+        param_grid = {
+                'kernel':['linear', 'poly', 'rbf', 'sigmoid'], 
                 'class_weight': ['balanced'], 
-                'C':c
-            },
-            {
-                'kernel':['poly'],   
-                'class_weight': ['balanced'], 
-                'C':c, 
-                'degree':[2,3,4,5]
-            },
-            {
-                'kernel':['rbf'],    
-                'class_weight': ['balanced'], 
-                'C':c, 
-                'gamma':[1e-1, 1e-2, 1e-3]
-            },
-            {
-                'kernel':['sigmoid'],
-                'class_weight': ['balanced'], 
+                'degree':[2,3,4,5],
+                'gamma':[1e-1, 1e-2, 1e-3],
                 'C':c
             }
-        ]
     else:
         print('Error: unknown classifier')
 
@@ -67,7 +50,8 @@ def find_best_config(X, y, clf, folds):
     # for (parallel 5 folds cross-validation)
     optimizer = RandomizedSearchCV(
         clf, param_grid, cv=folds, 
-        scoring='roc_auc', verbose=0, n_jobs=-1).fit(X, y)
+        scoring='roc_auc', verbose=0, n_jobs=-1
+    ).fit(X, y)
 
     return optimizer
 
@@ -100,7 +84,7 @@ def eval(
     X_train, X_test,
     y_train, y_test,              
     clf, # classifier to use ('rf', 'svm')
-    seed=10, # seed for the random generator
+    seed=2018, # seed for the random generator
 ):
     '''
         Run classifier and claculate the accuracy of the model based 
@@ -120,7 +104,5 @@ def eval(
     classifier = find_best_config(X_train, y_train, clf, 5)
     probs = classifier.predict_proba(X_test)
     
-    # compute AUC
     fpr, tpr, _ = roc_curve(y_test, probs[:, 1])
-
     return (fpr, tpr)

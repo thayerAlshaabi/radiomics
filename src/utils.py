@@ -179,18 +179,15 @@ def calc_auc(fps, tps, plot_roc=False):
         
     return aucs
 
-def csv_save(method, auc):
-    logs = pd.DataFrame()
 
-    logs['Method'] = [method]
-    for i in range(len(auc)):
-        logs['AUC' + str(i)] = [auc[i]]
-    print(logs)
-    
-    now = datetime.datetime.now()
+def csv_save(method, auc):
+    ''' Save AUCs scores to a csv file '''
+
+    cols = ['AUC'+str(i+1) for i in range(auc.shape[1])]
+    logs = pd.DataFrame(auc, columns=cols)    
     cwd = os.getcwd()
-    pth_to_save =  cwd + "/results/" + str(now.strftime("%Y-%m-%d %H:%M")) +  ".csv"
+    pth_to_save =  cwd + "/results/" + method +  "_aucs.csv"
     logs.to_csv(pth_to_save)
-    # # logs['']
-    
+
+    print(logs)
     

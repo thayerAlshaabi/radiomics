@@ -4,6 +4,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import numpy as np
+import utils
+from sklearn.metrics import roc_curve
 
 
 def get_tree(individual, plot=False, fig_number=-1):
@@ -28,69 +30,66 @@ def get_tree(individual, plot=False, fig_number=-1):
     return labels
 
 
-def eval_tree(tree, samples):
-    ''' Evaluate the sum of correctly identified cases '''
+def get_tree_predictions(tree, samples):
+    ''' Run a tree on a testing set and get its predictions '''
 
+    predictions = []
     nfeatures = len(samples[0]) - 1
 
-    nTP = sum(
-        bool(tree(*case[:nfeatures])) == bool(case[nfeatures]) \
-            for case in samples
-    ) / len(samples)
-
-    nFP = sum(
-        bool(tree(*case[:nfeatures])) != bool(case[nfeatures]) \
-            for case in samples
-    ) / len(samples)
-
-    return nTP * pow((1 - nFP), 2)
+    for case in samples:
+        if tree(*case[:nfeatures]):
+            predictions.append(1)
+        else:
+            predictions.append(0)
+    
+    return predictions
 
 
-def parse_features(hof, condition = 'GP', count = 0):
-    ''' Get the indecies of the selected features '''
+def eval_tree(groud_truth, predictions):
+    ''' Evaluate the ratio of correctly identified cases '''
 
-    ''' 
-        we need to loop through each guy in HOF 
-        and get a set of their 'unique' features  
-        -- make sure to pass a figure number to plot trees in different figures
-    '''
+    correct_cases = 0
 
-    featureArray = []
-    # featureArrayTemporary = []
+    for i in range(len(predictions)):
+        if groud_truth[i] == predictions[i]:
+            correct_cases += 1
+    
+    return correct_cases / len(groud_truth)
+
+
+def eval_hof(hof, X_test, y_test):
+    ''' Evaluate trees in HOF on the testing set '''
+
+    votes = np.zeros((len(hof), len(y_test)))
+    samples = np.column_stack((X_test, y_test))
 
     for i in range(len(hof)):
-        tree = get_tree(hof[i], plot=True, fig_number=count)
+        votes[i, :] = get_tree_predictions(hof[i], samples)
+    
+    y_pred = votes.mean(axis=0)
+
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+
+    return (fpr, tpr)
+
+
+def parse_features(hof, fig_counter=2):
+    ''' Get the indecies of the selected features '''
+
+    featureArray = []
+
+    for i in range(len(hof)):
+        tree = get_tree(hof[i], plot=False, fig_number=fig_counter)
         features = [int(f[2:]) for f in tree.values() if str(f).startswith('f_')]
 
         # for element in range(len(features)):
         for j in range(len(features)):
             featureArray.append(features[j])
-        print("Features: ", featureArray)
-        count += 1
+        #print("Features: ", featureArray)
+        fig_counter += 1
 
 
     uniques = np.unique(featureArray)
-    print('Unique: ', uniques)
-
-        
-    return np.unique(featureArray), count
-
-    # plt.figure(i)
-    # features = get_tree(hof[0], plot=True)
-    # features_idx = [int(f[2:]) for f in features.values() if str(f).startswith('f_')]
-
-    #return features_idx
-
-
-'''
-we need to have the following options:
-if 'GP':            use trees as classifiers 
-elif 'rf':          use ranfom forest only 
-elif 'svm':         use svm only 
-elif 'gp-rf':       get features w/ deap then run a random forest
-elif 'gp-svm':      get features w/ deap then run a SVM
-else:               raise a warning 
-
-we also need a script to save the results to a csv file
-to plot these on figure to compare them all together 
-'''
+    print('Selected Features: ', uniques)
+  
+    return np.unique(featureArray), fig_counter

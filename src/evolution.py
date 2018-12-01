@@ -11,13 +11,12 @@
 # Libraries and dependencies
 # -------------------------------------------------#
 import utils
-import parser
 import random
 import operator
 import numpy as np
 import sys, os
+import time
 import itertools
-import matplotlib.pyplot as plt
 
 from deap import gp
 from deap import algorithms
@@ -84,7 +83,7 @@ class Evolution:
 
         # terminals
         pset.addEphemeralConstant( # random constant
-            'rand'+str(random.randint(1,100)), lambda: random.random() * 100, float
+            'rand'+str(time.time()), lambda: random.random() * 100, float
         )
 
         pset.addTerminal(False, bool)
@@ -168,13 +167,24 @@ class Evolution:
 
     def fitness(self, individual):
         ''' Fitness function similar to Wu & Banzhaf, 2001. '''
+
+        def eval(tree, samples):
+            ''' Evaluate the sum of correctly identified cases '''
+            nfeatures = len(samples[0]) - 1
+            ncorrect = sum(
+                bool(tree(*case[:nfeatures])) == bool(case[nfeatures]) \
+                    for case in samples
+            ) / len(samples)
+            nfalse = 1 - ncorrect 
+            return ncorrect * pow((1 - nfalse), 2)
+            
         # transform the tree expression in a callable function
         tree = gp.compile(individual, self.pset)
         
         # randomly sample cases from the dataset to use as test cases
         samples = random.sample(self.dataset, len(self.dataset)//2)
 
-        return parser.eval_tree(tree, samples),
+        return eval(tree, samples),
 
 
     def assess_pop(self, pop):

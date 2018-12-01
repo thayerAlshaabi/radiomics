@@ -25,7 +25,7 @@ def run_deap(X, y):
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
-    GenMax = 2
+    GenMax = 25
     
     # concatenate selected features with their target values
     dataset = np.column_stack((X, y))
@@ -33,7 +33,7 @@ def run_deap(X, y):
     evo = Evolution(
         dataset = dataset.tolist(),   # data samples 
         popsize = popsize,            # initial population size
-        hofsize = 10,                 # the number of best individual to track
+        hofsize = 25,                 # the number of best individual to track
         cx = crRate,                  # crossover rate
         mut = mutRate,                # mutation rate
         maxgen = GenMax,              # max number of generations
@@ -46,12 +46,11 @@ def run_deap(X, y):
 
 if __name__ == '__main__':
     seed = 2018
-    folds = 5  
-    method = 'gp-rf'
+    folds = 5 
+    hofp_size = 10
+    method = 'gp'
+    reps = 10
     
-    # set a fix seed
-    np.random.seed(seed)
-
     # import data
     X, y = utils.load_data(
         filename='data_trimmed.csv', 
@@ -60,58 +59,83 @@ if __name__ == '__main__':
         resample=2 # (2) to downsample the negative cases
     )  
 
-    # setup cross-validation 
-    cv = StratifiedKFold(
-        n_splits=folds, 
-        shuffle=True, 
-        random_state=seed
-    ).split(X, y)
+    cond = method.split('-')
+    print('\n\nMethod: ', cond)
 
-    fprs, tprs = [], []
-    # run with specified cross-validation folds
-    count = 0
-    for itr, (train, test) in enumerate(cv):
-        print('--Running fold ', itr+1)
-        #utils.progressBar(itr+1, folds) 
+    auc_scores = np.zeros((reps, folds))
 
-        evo, pop, logbook, hof = run_deap(X[train], y[train])
+    for r in range(reps):
+        print('\nRun #', r+1)
+        print('-'*75)
 
-        test_scores = np.zeros(len(hof))
+        # set a fix seed
+        np.random.seed(seed)
 
-        # evaluate trees in the current hof array on the testing set
-        for i in range(len(hof)):
-            tree = gp.compile(hof[i], evo.pset)
-            dataset = np.column_stack((X[test], y[test]))
-            test_scores[i] = parser.eval_tree(tree, dataset)
-        
-        # get top 5 trees based on their scores on the testing set
-        hof_prime = [hof[i] for i in test_scores.argsort()[-5:][::-1]]
+        # setup cross-validation 
+        cv = StratifiedKFold(
+            n_splits=folds, 
+            shuffle=True, 
+            random_state=seed
+        ).split(X, y)
 
-        # parse features from the selected trees
-        features_idx, count = parser.parse_features(hof_prime, method, count)
-
-        print('\nNumber of selected features: {}\n\n'.format(
-            len(features_idx))
-        )
-        if ((method != 'svm') or (method != 'rf')):
-            cond = method.split('-')[1]
-            if ((cond == 'rf') or (cond == 'svm')):
+        fprs, tprs = [], []
+        # run with specified cross-validation folds
+        fig_counter = 2
+        for itr, (train, test) in enumerate(cv):
+            print('--Running fold ', itr+1)
             
+            if cond[0] == 'gp':
+                evo, pop, logbook, hof = run_deap(X[train], y[train])
+
+                test_scores = np.zeros(len(hof))
+                # evaluate trees in the current hof array on the testing set
+                for i in range(len(hof)):
+                    predictions = parser.get_tree_predictions(
+                        gp.compile(hof[i], evo.pset), 
+                        np.column_stack((X[test], y[test]))
+                    )
+                    test_scores[i] = parser.eval_tree(y[test], predictions)
+
+                # get top trees based on their scores on the testing set
+                hof_prime = [hof[i] for i in test_scores.argsort()[-hofp_size:][::-1]]
+
+                # parse features from the selected trees
+                features_idx, fig_counter = parser.parse_features(hof_prime, fig_counter)
+
+                print('\nNumber of selected features: {}\n\n'.format(
+                    len(features_idx))
+                )
+                
+                if len(cond) > 1:
+                    if ((cond[1] == 'rf') or (cond[1] == 'svm')):
+                        fp, tp = classifier.eval(
+                            X[train[:, None], features_idx], 
+                            X[test[:, None],  features_idx],
+                            y[train], y[test],  
+                            clf=cond[1], seed=seed
+                        )
+                else:     
+                    fp, tp  = parser.eval_hof(
+                        [gp.compile(i, evo.pset) for i in hof],
+                        X[test], y[test] 
+                    )
+
+
+            elif (cond[0] == 'rf') or (cond[0] == 'svm'):
                 fp, tp = classifier.eval(
-                    X[train[:, None], features_idx], 
-                    X[test[:, None],  features_idx],
+                    X[train], X[test],
                     y[train], y[test],  
-                    clf = cond, seed=seed
+                    clf=cond[0], seed=seed
                 )
 
-        tprs.append(tp)
-        fprs.append(fp)
+            tprs.append(tp)
+            fprs.append(fp)
 
-    auc_scores = utils.calc_auc(fprs, tprs, plot_roc=True)
-    print('kfolds Cross-Validation AUC: ', auc_scores)
-
-    utils.csv_save(method, auc_scores)
-
+        auc_scores[r, :] = utils.calc_auc(fprs, tprs, plot_roc=True)
+    
+        print('-'*75)
+    
     print('Done')
-    # plt.show() # show figures
+    utils.csv_save(method, auc_scores)
+    plt.show() # show figures
 

@@ -25,7 +25,7 @@ def run_deap(X, y):
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
-    GenMax = 25
+    GenMax = 250
     
     # concatenate selected features with their target values
     dataset = np.column_stack((X, y))
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-    method = 'gp'
+    method = 'gp-svm'
     reps = 10
     
     # import data
@@ -108,13 +108,15 @@ if __name__ == '__main__':
                 
                 if len(cond) > 1:
                     if ((cond[1] == 'rf') or (cond[1] == 'svm')):
+                        print(cond[1])
                         fp, tp = classifier.eval(
                             X[train[:, None], features_idx], 
                             X[test[:, None],  features_idx],
                             y[train], y[test],  
                             clf=cond[1], seed=seed
                         )
-                else:     
+                else:
+                    print(cond[0])     
                     fp, tp  = parser.eval_hof(
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 

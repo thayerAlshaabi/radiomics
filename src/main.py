@@ -48,7 +48,11 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
+<<<<<<< HEAD
     method = 'svm'
+=======
+    method = 'gp-svm'
+>>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
     reps = 10
     
     # import data
@@ -108,14 +112,21 @@ if __name__ == '__main__':
                 
                 if len(cond) > 1:
                     if ((cond[1] == 'rf') or (cond[1] == 'svm')):
+                        print(cond[1])
                         fp, tp = classifier.eval(
                             X[train[:, None], features_idx], 
                             X[test[:, None],  features_idx],
                             y[train], y[test],  
                             clf=cond[1], seed=seed
                         )
+<<<<<<< HEAD
                 else:     
                     fp, tp  = parsers.eval_hof(
+=======
+                else:
+                    print(cond[0])     
+                    fp, tp  = parser.eval_hof(
+>>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 
                     )

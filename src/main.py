@@ -11,7 +11,7 @@
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import utils
-import parser
+import parsers
 import operator
 import classifier
 import numpy as np
@@ -25,7 +25,7 @@ def run_deap(X, y):
     popsize = 500
     mutRate = 0.3 #If bloating control is removed use 0.3
     crRate = 0.5 #If bloating control removed use 0.5 (.7)
-    GenMax = 25
+    GenMax = 250
     
     # concatenate selected features with their target values
     dataset = np.column_stack((X, y))
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-    method = 'gp'
+    method = 'svm'
     reps = 10
     
     # import data
@@ -90,17 +90,17 @@ if __name__ == '__main__':
                 test_scores = np.zeros(len(hof))
                 # evaluate trees in the current hof array on the testing set
                 for i in range(len(hof)):
-                    predictions = parser.get_tree_predictions(
+                    predictions = parsers.get_tree_predictions(
                         gp.compile(hof[i], evo.pset), 
                         np.column_stack((X[test], y[test]))
                     )
-                    test_scores[i] = parser.eval_tree(y[test], predictions)
+                    test_scores[i] = parsers.eval_tree(y[test], predictions)
 
                 # get top trees based on their scores on the testing set
                 hof_prime = [hof[i] for i in test_scores.argsort()[-hofp_size:][::-1]]
 
                 # parse features from the selected trees
-                features_idx, fig_counter = parser.parse_features(hof_prime, fig_counter)
+                features_idx, fig_counter = parsers.parse_features(hof_prime, fig_counter)
 
                 print('\nNumber of selected features: {}\n\n'.format(
                     len(features_idx))
@@ -115,7 +115,7 @@ if __name__ == '__main__':
                             clf=cond[1], seed=seed
                         )
                 else:     
-                    fp, tp  = parser.eval_hof(
+                    fp, tp  = parsers.eval_hof(
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 
                     )

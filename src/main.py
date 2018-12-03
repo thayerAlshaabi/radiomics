@@ -48,15 +48,8 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-<<<<<<< HEAD
     method = 'svm'
-=======
-<<<<<<< HEAD
-    method = 'svm'
-=======
-    method = 'gp-svm'
->>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
->>>>>>> 327ec7b5465579a9ad00126aa23b903eb6e86750
+
     reps = 10
     
     # import data
@@ -122,18 +115,8 @@ if __name__ == '__main__':
                             y[train], y[test],  
                             clf=cond[1], seed=seed
                         )
-<<<<<<< HEAD
-                else:  
-=======
-<<<<<<< HEAD
                 else:     
                     fp, tp  = parsers.eval_hof(
-=======
-                else:
-                    print(cond[0])     
->>>>>>> 327ec7b5465579a9ad00126aa23b903eb6e86750
-                    fp, tp  = parser.eval_hof(
->>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 
                     )

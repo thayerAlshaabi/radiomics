@@ -136,10 +136,10 @@ class Evolution:
 
         # Uniform Mutation
         toolbox.register("mutate", 
-                        gp.mutEphemeral,
-                        mode="all")
-           #             expr=toolbox.expr_mut, 
-           #             pset=self.pset)
+                        gp.mutNodeReplacement,
+           #             mode="all")
+           #             expr= toolbox.expr_mut,
+                        pset=self.pset)
         '''
         toolbox.register("select", # selection function 
                 tools.selTournament, 

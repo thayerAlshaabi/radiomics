@@ -23,8 +23,8 @@ from sklearn.model_selection import StratifiedKFold
 
 def run_deap(X, y):
     popsize = 500
-    mutRate = 0.3 #If bloating control is removed use 0.3
-    crRate = 0.5 #If bloating control removed use 0.5 (.7)
+    mutRate = 0.4 #If bloating control is removed use 0.3
+    crRate = 0.6 #If bloating control removed use 0.5 (.7)
     GenMax = 250
     
     # concatenate selected features with their target values
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-    method = 'gp-svm'
+    method = 'svm'
     reps = 10
     
     # import data
@@ -108,15 +108,13 @@ if __name__ == '__main__':
                 
                 if len(cond) > 1:
                     if ((cond[1] == 'rf') or (cond[1] == 'svm')):
-                        print(cond[1])
                         fp, tp = classifier.eval(
                             X[train[:, None], features_idx], 
                             X[test[:, None],  features_idx],
                             y[train], y[test],  
                             clf=cond[1], seed=seed
                         )
-                else:
-                    print(cond[0])     
+                else:  
                     fp, tp  = parser.eval_hof(
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 
@@ -133,7 +131,7 @@ if __name__ == '__main__':
             tprs.append(tp)
             fprs.append(fp)
 
-        auc_scores[r, :] = utils.calc_auc(fprs, tprs, plot_roc=True)
+        auc_scores[r, :] = utils.calc_auc(fprs, tprs, r, plot_roc=True)
     
         print('-'*75)
     

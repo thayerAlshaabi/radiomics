@@ -120,10 +120,10 @@ def load_data(
     return X,y
 
 
-def plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc):
+def plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc, reps):
     ''' Plot roc curve per fold and mean/std score of all runs '''
 
-    plt.figure(1, figsize=(10,8))
+    plt.figure(reps, figsize=(10,8))
 
     plt.plot(
         mean_fpr, mean_tpr, color='k',
@@ -149,7 +149,7 @@ def plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc):
     plt.legend(loc="lower right", fontsize=14)
 
 
-def calc_auc(fps, tps, plot_roc=False):
+def calc_auc(fps, tps, reps, plot_roc=False):
     ''' Calculate mean ROC/AUC for a given set of 
         true positives (tps) & false positives (fps) '''
 
@@ -163,7 +163,7 @@ def calc_auc(fps, tps, plot_roc=False):
         aucs.append(roc_auc)
 
         if plot_roc:
-            plt.figure(1, figsize=(10,8))
+            plt.figure(reps, figsize=(10,8))
             plt.plot(
                 _fp, _tp, lw=1, alpha=0.5,
                 label='ROC fold %d (AUC = %0.2f)' % (itr+1, roc_auc)
@@ -175,7 +175,7 @@ def calc_auc(fps, tps, plot_roc=False):
     std_auc = np.std(aucs)
 
     if plot_roc:
-        plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc)
+        plot_roc_curve(tprs, mean_fpr, mean_tpr, mean_auc, std_auc, reps)
         
     return aucs
 

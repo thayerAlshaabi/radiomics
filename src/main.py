@@ -11,7 +11,7 @@
 # libraries and dependencies
 # ---------------------------------------------------------------------------- #
 import utils
-import parser
+import parsers
 import operator
 import classifier
 import numpy as np
@@ -48,7 +48,15 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
+<<<<<<< HEAD
     method = 'svm'
+=======
+<<<<<<< HEAD
+    method = 'svm'
+=======
+    method = 'gp-svm'
+>>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
+>>>>>>> 327ec7b5465579a9ad00126aa23b903eb6e86750
     reps = 10
     
     # import data
@@ -90,17 +98,17 @@ if __name__ == '__main__':
                 test_scores = np.zeros(len(hof))
                 # evaluate trees in the current hof array on the testing set
                 for i in range(len(hof)):
-                    predictions = parser.get_tree_predictions(
+                    predictions = parsers.get_tree_predictions(
                         gp.compile(hof[i], evo.pset), 
                         np.column_stack((X[test], y[test]))
                     )
-                    test_scores[i] = parser.eval_tree(y[test], predictions)
+                    test_scores[i] = parsers.eval_tree(y[test], predictions)
 
                 # get top trees based on their scores on the testing set
                 hof_prime = [hof[i] for i in test_scores.argsort()[-hofp_size:][::-1]]
 
                 # parse features from the selected trees
-                features_idx, fig_counter = parser.parse_features(hof_prime, fig_counter)
+                features_idx, fig_counter = parsers.parse_features(hof_prime, fig_counter)
 
                 print('\nNumber of selected features: {}\n\n'.format(
                     len(features_idx))
@@ -114,8 +122,18 @@ if __name__ == '__main__':
                             y[train], y[test],  
                             clf=cond[1], seed=seed
                         )
+<<<<<<< HEAD
                 else:  
+=======
+<<<<<<< HEAD
+                else:     
+                    fp, tp  = parsers.eval_hof(
+=======
+                else:
+                    print(cond[0])     
+>>>>>>> 327ec7b5465579a9ad00126aa23b903eb6e86750
                     fp, tp  = parser.eval_hof(
+>>>>>>> 25355d0a6378b4ae1a137c707da46cec6a8cf8dd
                         [gp.compile(i, evo.pset) for i in hof],
                         X[test], y[test] 
                     )

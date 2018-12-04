@@ -139,7 +139,7 @@ class Evolution:
         toolbox.register("select", # selection function 
                         tools.selDoubleTournament, 
                         fitness_size = 7, # of individuals participating in each fitness tournament
-                        parsimony_size = 1.8, # of individuals participating in each size tournament
+                        parsimony_size = 1.8, # 90% chance of selecting the indivudal with the better fitness, regardless of size
                         fitness_first=True)
      
         # Control code-bloat: max depth of a tree

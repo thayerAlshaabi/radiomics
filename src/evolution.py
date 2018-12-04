@@ -32,11 +32,11 @@ class Evolution:
     
     def __init__(self,  # Constructor
         dataset,        # numpy matrix 
-        popsize = 100,  # initial population size
-        hofsize = 1,    # the number of best individual to track
-        cx = .5,        # crossover rate
-        mut = .2,       # mutation rate
-        maxgen = 50,    # max number of generations
+        popsize,        # initial population size
+        hofsize,        # the number of best individual to track
+        cx,             # crossover rate
+        mut,            # mutation rate
+        maxgen,         # max number of generations
     ):
         self.dataset = dataset
         self.popsize = popsize # set pop size
@@ -109,8 +109,8 @@ class Evolution:
         toolbox.register("initializer",
                         gp.genHalfAndHalf,
                         pset=self.pset,
-                        min_=1,
-                        max_=2)
+                        min_=5,
+                        max_=20)
 
         toolbox.register("tree",
                         tools.initIterate,
@@ -122,12 +122,7 @@ class Evolution:
                         list,
                         toolbox.tree)
 
-        toolbox.register("expr_mut",
-                        gp.genHalfAndHalf,
-                        min_=0,
-                        max_=2)
-
-        # Fitness function similar to Wu & Banzhaf, 2001.
+        # Fitness function similar to Wu & Banzhaf, 2011.
         # Fi = TPRi x (1 - FPRi)^2
         toolbox.register("evaluate", self.fitness)
 
@@ -137,14 +132,8 @@ class Evolution:
         # Uniform Mutation
         toolbox.register("mutate", 
                         gp.mutNodeReplacement,
-           #             mode="all")
-           #             expr= toolbox.expr_mut,
                         pset=self.pset)
-        '''
-        toolbox.register("select", # selection function 
-                tools.selTournament, 
-                tournsize=3) 
-        '''
+
         # DoubleTournament Selection uses the size of the individuals
         # in order to discriminate good solutions.
         toolbox.register("select", # selection function 
@@ -156,11 +145,11 @@ class Evolution:
         # Control code-bloat: max depth of a tree
         toolbox.decorate("mate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 
-                        max_value=17))
+                        max_value=20))
 
         toolbox.decorate("mutate", 
                         gp.staticLimit(key=operator.attrgetter("height"), 
-                        max_value=17))
+                        max_value=20))
 
         return toolbox
 

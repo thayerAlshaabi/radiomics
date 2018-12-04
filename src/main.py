@@ -47,8 +47,8 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-    method = ['rf', 'svm']
-
+    method = ['gp-rf', 'gp-svm', 'gp', 'svm', 'rf']
+    figure = 0
     reps = 5
     
     # import data
@@ -132,8 +132,9 @@ if __name__ == '__main__':
                 tprs.append(tp)
                 fprs.append(fp)
 
-            auc_scores[r, :] = utils.calc_auc(fprs, tprs, r, plot_roc=True)
+            auc_scores[r, :] = utils.calc_auc(fprs, tprs, figure, plot_roc=True)
             plt.savefig(r"./results/images/OriginalDataset/" + method[n] + "-AUC" + "_reps" + str(r))
+            figure += 1
             print('-'*75)
         
         utils.csv_save(method[n], auc_scores)

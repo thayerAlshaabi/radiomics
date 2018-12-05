@@ -1,4 +1,4 @@
-Feature ID,GP Count,GP-SVM Count,GP-RF Count,FEATURE index
+Feature ID,GP,GP-SVM,GP-RF,FEATURE index
 F_0,1,3,0,0
 F_1,0,0,0,1
 F_2,0,0,0,2

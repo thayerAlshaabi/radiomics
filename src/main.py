@@ -136,7 +136,7 @@ if __name__ == '__main__':
                 fprs.append(fp)
 
             auc_scores[r, :] = utils.calc_auc(fprs, tprs, figure, plot_roc=True)
-            plt.savefig(r"./results/images/OriginalDataset/" + method[n] + "-AUC" + "_reps" + str(r))
+            plt.savefig(r"./results/images/TrimmedDataset/" + method[n] + "-AUC" + "_reps" + str(r))
             figure += 1
             print('-'*75)
         

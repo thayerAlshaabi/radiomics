@@ -47,13 +47,13 @@ if __name__ == '__main__':
     seed = 2018
     folds = 5 
     hofp_size = 10
-    method = ['gp-rf', 'gp-svm', 'gp', 'svm', 'rf']
+    method = ['gp-svm', 'gp-rf', 'gp', 'svm', 'rf']
     figure = 0
     reps = 5
     
     # import data
     x, y = utils.load_data(
-        filename='data_101718.csv', 
+        filename='data_trimmed.csv', 
         clean=False,
         normalize=True,
         resample=2 # (2) to downsample the negative cases
@@ -64,6 +64,7 @@ if __name__ == '__main__':
         print('\n\nMethod: ', cond)
         X = x[:,0:250]
         auc_scores = np.zeros((reps, folds))
+        feat = []
 
         for r in range(reps):
             print('\nRun #', r+1)
@@ -102,11 +103,13 @@ if __name__ == '__main__':
 
                     # parse features from the selected trees
                     features_idx, fig_counter = parsers.parse_features(hof_prime, fig_counter)
-
+                    
                     print('\nNumber of selected features: {}\n\n'.format(
                         len(features_idx))
                     )
-                    
+                    feat.append(features_idx)
+                    print(feat)
+
                     if len(cond) > 1:
                         if ((cond[1] == 'rf') or (cond[1] == 'svm')):
                             fp, tp = classifier.eval(
@@ -138,6 +141,7 @@ if __name__ == '__main__':
             print('-'*75)
         
         utils.csv_save(method[n], auc_scores)
+        print(feat)
         
     print('Done')
 

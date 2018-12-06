@@ -5,6 +5,24 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
+    Description: 
+    main.py is the brain of the script, where all methodologies are defined for the run instance.
+    Furthermore, main.py loads the desired dataset defined by "filename" for the user to be able
+    to pull whichever dataset he/she desires.
+    
+    Deap Documentation: https://deap.readthedocs.io/en/master/
+
+    Import Variable:
+     (1) Method = ['gp', 'gp-svm', 'gp-rf', 'svm', 'rf'] | # Defines list of methodologies the system will take 
+     (2) seed = 2018 | #Defines the see for the classifier function and not the seed for the evolution
+     (3) folds = 5  | # Number of cross validation conducted
+     (4) hofp_size = 10 | Number of individuals taken fromt he hall of fame population to evaluate
+     (5)reps = 5 | # Number of repetition the code will run for.
+     (6) filename = string | #Defines the dataset that you will want to utilize
+
+    Function call:
+        python main.py
+    ---
     Copyright (c) 2018 
 '''
 

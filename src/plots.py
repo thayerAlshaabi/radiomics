@@ -5,6 +5,9 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
+    Description: 
+    Utilized to generate plots of the max fitness of individuals based on the optimizer.py function
+    ---
     Copyright (c) 2018 
 '''
 

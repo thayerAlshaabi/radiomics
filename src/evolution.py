@@ -5,6 +5,11 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
+    Description: 
+    Evolutionary function that defines all parameters for DEAP.
+    Defines mutation function, crossover function, selection criteria, and bloat controls.
+    Initializes deap's function set that will be utilized to generate individuals for the population.
+    ---
     Copyright (c) 2018 
 '''
 

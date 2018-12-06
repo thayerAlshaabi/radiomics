@@ -5,6 +5,11 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
+    Description:
+    Generates violin plots of AUC data stored in csv files, and runs a two way t-test to
+    evaluate whether two approaches are statistically different from each other. 
+    ---
+    ---
     Copyright (c) 2018 
 '''
 

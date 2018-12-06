@@ -3,7 +3,12 @@
 """ MIT License """
 '''
     Axel Masquelin & Sami Connolly  
-    Andrea Elhajj  & Thayer Alshaabi
+    Andrea Elhajj  & Thayer Alshaab
+    ---
+    Description: 
+    Function designed to evaluate all parameters provided to the gp and identify the best parameters.
+    Saves all fitness of individuals by logging them into csv files which will then be evaluated on plots.py
+
     ---
     Copyright (c) 2018 
 '''

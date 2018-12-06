@@ -1,3 +1,20 @@
+# coding: utf-8
+
+""" MIT License """
+'''
+    Axel Masquelin & Sami Connolly  
+    Andrea Elhajj  & Thayer Alshaabi
+    ---    
+    Description: 
+    Individuals from the hall of fame are selected in main.py and broken into their fundamental
+    features through the use of parser. Unique features are retained in a list that is then utilized 
+    to inform the SVM and RF of which features to utilize for their classifier. 
+    ---
+    Copyright (c) 2018  
+'''
+
+# libraries and dependencies
+# ---------------------------------------------------------------------------- #
 import classifier
 from deap import gp
 import networkx as nx
@@ -6,7 +23,7 @@ from networkx.drawing.nx_agraph import graphviz_layout
 import numpy as np
 import utils
 from sklearn.metrics import roc_curve
-
+# ---------------------------------------------------------------------------- #
 
 def get_tree(individual, plot=False, fig_number=-1):
     ''' Get and print tree structure '''

@@ -5,7 +5,11 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
-    Copyright (c) 10 
+    Description:
+    Misceleanous functions to assist in the evaluation of individuals, creating visuals,
+    and csv file save. 
+    ---
+    Copyright (c) 2018
 '''
 
 # libraries and dependencies

@@ -14,8 +14,10 @@ import matplotlib.pyplot as plt
 import matplotlib.axes as ax
 import seaborn as sns
 import pandas as pd
+from scipy import stats
 import numpy as np
 import glob
+import csv
 import os
 import re
 # ---------------------------------------------------------------------------- #\
@@ -32,21 +34,33 @@ for root, dirs, files in os.walk(cwd + "/results/images/TrimmedDataset", topdown
                 mean_AUC = []
                 filename = os.path.join(root,name)
                 base.append(os.path.splitext(os.path.basename(filename))[0])
-                aucs = pd.read_csv(filename)
-                mean_AUC.append(np.mean(aucs['AUC1']))
-                mean_AUC.append(np.mean(aucs['AUC2']))
-                mean_AUC.append(np.mean(aucs['AUC3']))
-                mean_AUC.append(np.mean(aucs['AUC4']))
-                mean_AUC.append(np.mean(aucs['AUC5']))
+                #aucs = csv.read_csv(filename)
+                with open(filename, newline = '') as f:
+                    reader = csv.reader(f)
+                    next(reader)
+                    for row in reader:
+                        for l in range(len(row)-1):
+                            mean_AUC.append(float(row[l+1]))
                 df[header] = mean_AUC
 
 labels = {'gp-rf', 'gp-svm', 'gp', 'rf', 'svm'}
-#df = pd.melt(df, value_vars=['gp-rf', 'gp-svm', 'gp', 'rf', 'svm'])
-print(df)
-#ax.Axes.violinplot(mean_AUC, showmeans = True, showmedians = True)
 sns.violinplot(data = df, inner="quartile", bw=.15, fontsize = 12)
 plt.xlabel('Methods', fontsize = 12)
 plt.ylabel('AUC', fontsize = 12)
-plt.title('AUC of all methodologies [Trimmed Dataset]', fontsize = 12)
-plt.show()
+
+t,p = stats.ttest_ind(df['gp-rf'], df['gp-svm'], equal_var = False)
+print("gp-rf, gp-svm: ", t,p)
+t,p = stats.ttest_ind(df['gp-rf'], df['gp'], equal_var = False)
+print("gp-rf, gp: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['gp-svm'], equal_var = False)
+print("gp, gp-svm: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['svm'], equal_var = False)
+print("gp, svm: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['rf'], equal_var = False)
+print("gp, rf: ", t,p)
+t,p = stats.ttest_ind(df['gp-rf'], df['rf'], equal_var = False)
+print("gp-rf, rf: ", t,p)
+t,p = stats.ttest_ind(df['gp-svm'], df['svm'], equal_var = False)
+print("gp-svm, svm: ", t,p)
+#plt.show()
 

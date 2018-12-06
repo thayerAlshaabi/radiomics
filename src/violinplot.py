@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.axes as ax
 import seaborn as sns
 import pandas as pd
+from scipy import stats
 import numpy as np
 import glob
 import csv
@@ -39,12 +40,27 @@ for root, dirs, files in os.walk(cwd + "/results/images/TrimmedDataset", topdown
                     next(reader)
                     for row in reader:
                         for l in range(len(row)-1):
-                            mean_AUC.append(row[l+1])
+                            mean_AUC.append(float(row[l+1]))
                 df[header] = mean_AUC
 
 labels = {'gp-rf', 'gp-svm', 'gp', 'rf', 'svm'}
 sns.violinplot(data = df, inner="quartile", bw=.15, fontsize = 12)
 plt.xlabel('Methods', fontsize = 12)
 plt.ylabel('AUC', fontsize = 12)
-plt.show()
+
+t,p = stats.ttest_ind(df['gp-rf'], df['gp-svm'], equal_var = False)
+print("gp-rf, gp-svm: ", t,p)
+t,p = stats.ttest_ind(df['gp-rf'], df['gp'], equal_var = False)
+print("gp-rf, gp: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['gp-svm'], equal_var = False)
+print("gp, gp-svm: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['svm'], equal_var = False)
+print("gp, svm: ", t,p)
+t,p = stats.ttest_ind(df['gp'], df['rf'], equal_var = False)
+print("gp, rf: ", t,p)
+t,p = stats.ttest_ind(df['gp-rf'], df['rf'], equal_var = False)
+print("gp-rf, rf: ", t,p)
+t,p = stats.ttest_ind(df['gp-svm'], df['svm'], equal_var = False)
+print("gp-svm, svm: ", t,p)
+#plt.show()
 

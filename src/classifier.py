@@ -5,7 +5,7 @@
     Axel Masquelin & Sami Connolly  
     Andrea Elhajj  & Thayer Alshaabi
     ---
-    Copyright (c) 10 
+    Copyright (c) 2018 
 '''
 
 # libraries and dependencies
